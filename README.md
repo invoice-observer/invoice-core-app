@@ -45,7 +45,6 @@ public class InvoiceLine
 ```
 ## REST API Endpoints
 
-
 - GET /api/invoices — Returns all invoices.
 - GET /api/invoices/{id} — Returns a specific invoice by ID.
 - POST /api/invoices — Creates a new invoice.
