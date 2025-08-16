@@ -93,7 +93,7 @@ namespace DataLayer.Services
             {
                 var (_, channel) = await EnsureInitializedAsync(cancellationToken);
 
-                var routingKey = config.Value.RoutingKey;
+                var routingKey = $"invoice.{eventType.ToLower()}";
                 var message = JsonSerializer.Serialize(data);
                 var body = Encoding.UTF8.GetBytes(message);
 
