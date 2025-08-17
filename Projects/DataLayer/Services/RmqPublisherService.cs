@@ -97,6 +97,13 @@ namespace DataLayer.Services
                 var message = JsonSerializer.Serialize(data);
                 var body = Encoding.UTF8.GetBytes(message);
 
+                var (formattedMessage, isJson) = FormatMessageAsJsonOrText(System.Text.Encoding.UTF8.GetString(body));
+                if (isJson)
+                {
+                    logger.LogInformation("Publishing JSON message:\n      Routing key: {RoutingKey}\n      Message: {FormattedJson}",
+                        routingKey, formattedMessage);
+                }
+
                 var properties = new BasicProperties
                 {
                     Persistent = true,
@@ -112,8 +119,6 @@ namespace DataLayer.Services
                     body,
                     cancellationToken);
 
-                logger.LogDebug("Published {EventType} message with routing key {RoutingKey}",
-                    eventType, routingKey);
             }
             catch (Exception ex)
             {
@@ -166,6 +171,26 @@ namespace DataLayer.Services
             finally
             {
                 _initializationLock.Dispose();
+            }
+        }
+        private static (string formattedMessage, bool isJson) FormatMessageAsJsonOrText(string messageRaw)
+        {
+            try
+            {
+                var jsonObj = System.Text.Json.JsonDocument.Parse(messageRaw);
+                var formattedMessage = System.Text.Json.JsonSerializer.Serialize(
+                    jsonObj,
+#pragma warning disable CA1869
+                    new System.Text.Json.JsonSerializerOptions
+#pragma warning restore CA1869
+                    {
+                        WriteIndented = true
+                    });
+                return (formattedMessage, true);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return (messageRaw, false);
             }
         }
     }
