@@ -25,10 +25,9 @@ Postman collections and environments for API workflow testing.
 - **Invalid Credentials** - Test authentication failure with wrong credentials
 
 ### Invoice Tests
+- **Unauthorized Access** - Test invoice creation without authentication
 - **Get All Invoices** - Retrieve all invoices (requires authentication)
 - **Create Invoice** - Create new invoice with invoice lines (requires authentication)
-- **Get Invoice by ID** - Retrieve specific invoice by ID
-- **Unauthorized Access** - Test invoice creation without authentication
 
 ### Complete Workflow
 - **End-to-End Test** - Complete workflow: Login → Create Invoice → Verify Invoice

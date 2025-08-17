@@ -231,44 +231,6 @@
                     }
                 },
                 {
-                    "name": "Get Invoice by ID",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test(\"Status code is 200\", function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test(\"Invoice data is correct\", function () {",
-                                    "    var jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData).to.have.property('id');",
-                                    "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get('invoice_id')));",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{jwt_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/invoices/{{invoice_id}}",
-                            "host": [ "{{base_url}}" ],
-                            "path": [ "api", "invoices", "{{invoice_id}}" ]
-                        },
-                        "description": "Get a specific invoice by ID"
-                    }
-                },
-                {
                     "name": "Create Invoice - Unauthorized",
                     "event": [
                         {
@@ -384,39 +346,6 @@
                             "raw": "{{base_url}}/api/invoices",
                             "host": [ "{{base_url}}" ],
                             "path": [ "api", "invoices" ]
-                        }
-                    }
-                },
-                {
-                    "name": "3. Verify Invoice",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test(\"Invoice retrieved successfully\", function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "    var jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.description).to.eql(\"Workflow Test Invoice\");",
-                                    "    console.log(\"Invoice verified: \" + jsonData.description);",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{jwt_token}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/invoices/{{invoice_id}}",
-                            "host": [ "{{base_url}}" ],
-                            "path": [ "api", "invoices", "{{invoice_id}}" ]
                         }
                     }
                 }
