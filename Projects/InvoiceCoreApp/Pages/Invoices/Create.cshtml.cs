@@ -11,10 +11,15 @@ namespace InvoiceCoreApp.Pages.Invoices
 
         public void OnGet()
         {
-            if (Invoice.InvoiceLines.Count == 0)
-                Invoice.InvoiceLines = [new InvoiceLine()];
+            var formatted = DateTime.Now.ToString("yyyyMMdd-HHmm");
+            Invoice = new Invoice
+            {
+                Description = $"Description-{formatted}",
+                DueDate = DateTime.Now.Date + TimeSpan.FromDays(4),
+                Supplier = $"Supplier-{formatted}",
+                InvoiceLines = [new InvoiceLine{Description = $"Line-{formatted}", Quantity = 1}]
+            };
         }
-
         public IActionResult OnPostAddLine()
         {
             Invoice.InvoiceLines.Add(new InvoiceLine());
