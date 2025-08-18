@@ -81,4 +81,4 @@ A Postman collection is provided for comprehensive workflow testing including:
 
 ## Project Status
 
-In active development. See the [project board](https://github.com/users/e-danz/projects/2) for current priorities and progress tracking.
+Mostly finished, not completely yet reviewed. See the [project board](https://github.com/users/e-danz/projects/2) for current priorities and progress tracking.
