@@ -6,7 +6,7 @@ using System.Threading;
 namespace InvoiceCoreApp.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/invoices")]
     public class InvoicesApiController(IInvoiceService service) : ControllerBase
     {
         [HttpGet]

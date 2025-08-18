@@ -1,0 +1,355 @@
+{
+    "info": {
+        "name": "Invoice API Tests",
+        "description": "Complete test suite for Invoice Core Application API endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "version": "1.0.0"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{jwt_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global pre-request script"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "invoice_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "JWT Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response contains token\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('token');",
+                                    "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Token is not empty\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.token).to.not.be.empty;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"onventis\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "auth", "login" ]
+                        },
+                        "description": "Authenticate user and retrieve JWT token"
+                    }
+                },
+                {
+                    "name": "JWT Login - Invalid Credentials",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"InvalidUser\",\n  \"password\": \"wrongpassword\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "auth", "login" ]
+                        },
+                        "description": "Test authentication with invalid credentials"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Invoices",
+            "item": [
+                {
+                    "name": "Get All Invoices",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response is an array\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        },
+                        "description": "Retrieve all invoices"
+                    }
+                },
+                {
+                    "name": "Create Invoice",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Status code is 201 Created\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response contains invoice data\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('id');",
+                                    "    pm.expect(jsonData).to.have.property('description');",
+                                    "    pm.expect(jsonData).to.have.property('supplier');",
+                                    "    pm.expect(jsonData).to.have.property('dueDate');",
+                                    "    pm.expect(jsonData).to.have.property('invoiceLines');",
+                                    "    ",
+                                    "    // Store invoice ID for other tests",
+                                    "    pm.environment.set(\"invoice_id\", jsonData.id);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Invoice lines are present\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.invoiceLines).to.be.an('array');",
+                                    "    pm.expect(jsonData.invoiceLines.length).to.be.greaterThan(0);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Location header is present\", function () {",
+                                    "    pm.response.to.have.header('Location');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Test Invoice from Postman\",\n  \"dueDate\": \"2024-02-15T00:00:00\",\n  \"supplier\": \"Postman Test Supplier\",\n  \"invoiceLines\": [\n    {\n      \"description\": \"Test Item 1\",\n      \"price\": 99.99,\n      \"quantity\": 2\n    },\n    {\n      \"description\": \"Test Item 2\",\n      \"price\": 49.95,\n      \"quantity\": 1\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        },
+                        "description": "Create a new invoice with invoice lines"
+                    }
+                },
+                {
+                    "name": "Create Invoice - Unauthorized",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Unauthorized Test Invoice\",\n  \"dueDate\": \"2024-02-15T00:00:00\",\n  \"supplier\": \"Test Supplier\",\n  \"invoiceLines\": [\n    {\n      \"description\": \"Test Item\",\n      \"price\": 10.00,\n      \"quantity\": 1\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        },
+                        "description": "Test invoice creation without authentication"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Complete Workflow",
+            "item": [
+                {
+                    "name": "1. Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"JWT Token obtained: \" + jsonData.token.substring(0, 20) + \"...\");",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"onventis\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "auth", "login" ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. Create Invoice",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Invoice created successfully\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"invoice_id\", jsonData.id);",
+                                    "    console.log(\"Invoice created with ID: \" + jsonData.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Workflow Test Invoice\",\n  \"dueDate\": \"2024-02-20T00:00:00\",\n  \"supplier\": \"Workflow Test Supplier\",\n  \"invoiceLines\": [\n    {\n      \"description\": \"Workflow Test Item\",\n      \"price\": 123.45,\n      \"quantity\": 3\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
