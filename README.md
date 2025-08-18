@@ -1,29 +1,30 @@
-# Invoice Core Application
+# Invoice Core System
 
 ## Overview
 
-Invoice processing system built with ASP.NET Core, implementing
-secure API endpoints for invoice data management with RabbitMQ
-integration.
+Invoice processing system built with ASP.NET Core, implementing secure API
+endpoints for invoice data management with RabbitMQ integration.
 
 ## Key Features
 
 1. Endpoints for invoice management.
 2. JWT-based login for secure API access.
 3. Razor Pages UI with cookie authentication.
+4. Unit Tests for Data Layer and Postman Sequences for API testing.
 
 ## System Architecture
 
-This solution consists of two applications:
+Consists of two applications, developed with a concept of independent microservices in mind:
 
-1. **API Service (ASP.NET Core)**
+1. **API Service (ASP.NET Core Application)**
    - Authenticated endpoint for invoice submission
    - SQLite persistence via Entity Framework
    - RabbitMQ queue producer
 
-2. **Monitoring Application (.NET 5 Console)**
+2. **Monitoring Application (.NET Invoice Monitoring CLI)**
    - RabbitMQ queue consumer
    - Message processing and display functionality
+   - Resides in a separate repository, [here](https://github.com/e-danz/invoice-monitoring-cli.git)
 
 ## Data Model
 
@@ -78,6 +79,10 @@ A Postman collection is provided for comprehensive workflow testing including:
 - Authentication token acquisition
 - Invoice submission
 - End-to-end verification
+
+## Related Projects
+
+Works together with [Invoice Monitoring CLI](https://github.com/e-danz/invoice-monitoring-cli.git).
 
 ## Project Status
 
