@@ -1,9 +1,8 @@
-# Invoice Core System
+# Invoice Observer / Invoice Core
 
 ## Overview
 
-Invoice processing system built with ASP.NET Core, implementing secure API
-endpoints for invoice data management with RabbitMQ integration.
+ASP.NET Core MVP / API implementing a primitive invoice management with JWT authentication, simple Razor Pages UI, publishing events to RabbitMQ.
 
 ## Key Features
 
@@ -11,6 +10,7 @@ endpoints for invoice data management with RabbitMQ integration.
 2. JWT-based login for secure API access.
 3. Razor Pages UI with cookie authentication.
 4. Unit Tests for Data Layer and Postman Sequences for API testing.
+5. Events are published to RabbitMQ in order to enable monitoring
 
 ## System Architecture
 
@@ -24,7 +24,7 @@ Consists of two applications, developed with a concept of independent microservi
 2. **Monitoring Application (.NET Invoice Monitoring CLI)**
    - RabbitMQ queue consumer
    - Message processing and display functionality
-   - Resides in a separate repository, [here](https://github.com/e-danz/invoice-monitoring-cli.git)
+   - Resides in a separate repository, [here](https://github.com/invoice-observer/invoice-monitoring-cli.git)
 
 ## Data Model
 
@@ -46,15 +46,15 @@ public class InvoiceLine
 ```
 ## REST API Endpoints
 
-- GET /api/invoices — Returns all invoices.
-- GET /api/invoices/{id} — Returns a specific invoice by ID.
-- POST /api/invoices — Creates a new invoice.
-- (not implemented) PUT /api/invoices/{id} — Updates an existing invoice.
-- (not implemented) DELETE /api/invoices/{id} — Deletes an invoice by ID.
+- GET /api/invoices â€” Returns all invoices.
+- GET /api/invoices/{id} â€” Returns a specific invoice by ID.
+- POST /api/invoices â€” Creates a new invoice.
+- (not implemented) PUT /api/invoices/{id} â€” Updates an existing invoice.
+- (not implemented) DELETE /api/invoices/{id} â€” Deletes an invoice by ID.
 
 All invoice endpoints require valid JWT authentication.
 
-- POST /api/auth/login — Authenticates user credentials and returns a JWT token.
+- POST /api/auth/login â€” Authenticates user credentials and returns a JWT token.
  
 
 ## Development
@@ -82,8 +82,4 @@ A Postman collection is provided for comprehensive workflow testing including:
 
 ## Related Projects
 
-Works together with [Invoice Monitoring CLI](https://github.com/e-danz/invoice-monitoring-cli.git).
-
-## Project Status
-
-Mostly finished, not completely yet reviewed. See the [project board](https://github.com/users/e-danz/projects/2) for current priorities and progress tracking.
+Works together with [Invoice Monitoring CLI](https://github.com/invoice-observer/invoice-monitoring-cli.git).
