@@ -14,7 +14,7 @@ namespace InvoiceCoreApp.Controllers
         public IActionResult Login([FromBody] LoginRequest request)
         {
             // ReSharper disable once InvertIf
-            if (request is { Username: "Admin", Password: "onventis" })
+            if (request is { Username: "Admin", Password: "edanziger" })
             {
                 const string key = "super_secret_jwt_key_12345_super_secret_key";
                 var tokenHandler = new JwtSecurityTokenHandler();

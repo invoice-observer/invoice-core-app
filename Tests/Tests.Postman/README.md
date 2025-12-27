@@ -21,7 +21,7 @@ Postman collections and environments for API workflow testing.
 ## Test Coverage
 
 ### Authentication Tests
-- **JWT Login** - Test successful authentication with Admin/onventis credentials
+- **JWT Login** - Test successful authentication with Admin/edanziger credentials
 - **Invalid Credentials** - Test authentication failure with wrong credentials
 
 ### Invoice Tests
@@ -78,5 +78,5 @@ The collection uses these environment variables:
 
 ## Authentication Credentials
 - **Username**: Admin
-- **Password**: onventis
+- **Password**: edanziger
 

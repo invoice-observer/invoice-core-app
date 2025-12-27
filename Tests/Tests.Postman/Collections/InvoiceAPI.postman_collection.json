@@ -79,7 +79,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"onventis\"\n}"
+                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"edanziger\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/api/auth/login",
@@ -299,7 +299,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"onventis\"\n}"
+                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"edanziger\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/api/auth/login",
