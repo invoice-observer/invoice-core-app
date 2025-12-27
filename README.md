@@ -1,8 +1,23 @@
-# Invoice Observer / Invoice Core
+# Invoice Observer (and Invoice Core)
 
-## Overview
+## Overall System Architecture
 
-ASP.NET Core MVP / API implementing a primitive invoice management with JWT authentication, simple Razor Pages UI, publishing events to RabbitMQ.
+Invoice Observer consists of two applications, developed with a concept of independent microservices in mind:
+
+1. **Invoice Core (ASP.NET Core Application)**
+   - Authenticated endpoint for invoice submission
+   - SQLite persistence via Entity Framework
+   - RabbitMQ queue publisher for invoice events
+
+2. **Invoice Monitoring (.NET Invoice Monitoring CLI)**
+   - RabbitMQ queue consumer
+   - Message processing and display functionality
+   - Resides in a separate repository, [here](https://github.com/invoice-observer/invoice-monitoring-cli.git)
+
+## Invoice Core
+
+ASP.NET Core MVP / API implementing a primitive invoice management with JWT authentication, simple Razor Pages UI,
+publishing events to RabbitMQ.
 
 ## Key Features
 
@@ -11,20 +26,8 @@ ASP.NET Core MVP / API implementing a primitive invoice management with JWT auth
 3. Razor Pages UI with cookie authentication.
 4. Unit Tests for Data Layer and Postman Sequences for API testing.
 5. Events are published to RabbitMQ in order to enable monitoring
-
-## System Architecture
-
-Consists of two applications, developed with a concept of independent microservices in mind:
-
-1. **API Service (ASP.NET Core Application)**
-   - Authenticated endpoint for invoice submission
-   - SQLite persistence via Entity Framework
-   - RabbitMQ queue producer
-
-2. **Monitoring Application (.NET Invoice Monitoring CLI)**
-   - RabbitMQ queue consumer
-   - Message processing and display functionality
-   - Resides in a separate repository, [here](https://github.com/invoice-observer/invoice-monitoring-cli.git)
+6. [Postman Tests for API workflow verification](Tests/Tests.Postman/README.md)
+7. [Unit Tests for core invoice services using NUnit](Tests/Tests.NUnit/README.md)
 
 ## Data Model
 
@@ -57,13 +60,14 @@ All invoice endpoints require valid JWT authentication.
 - POST /api/auth/login — Authenticates user credentials and returns a JWT token.
  
 
-## Development
+## Development Environment
 
-### Requirements
+### Technologies Used
 
 - .NET 5 SDK or later
 - Entity Framework Core tools
 - Postman (for API testing)
+- NUnit (for unit testing)
 
 ### Getting Started
 
@@ -73,12 +77,21 @@ All invoice endpoints require valid JWT authentication.
 4. Start the API service
 5. Start the console processing service
 
-### Testing
+### Testing via Postman
 
 A Postman collection is provided for comprehensive workflow testing including:
 - Authentication token acquisition
 - Invoice submission
 - End-to-end verification
+
+See [Tests/Tests.Postman/README.md](Tests/Tests.Postman/README.md) for details about structure,
+dependencies, and how to run the tests.
+
+### Unit Testing
+
+Unit test coverage for the core invoice services is provided in the NUnit test project.
+See [Tests/Tests.NUnit/README.md](Tests/Tests.NUnit/README.md) for details about structure,
+dependencies, and how to run the tests.
 
 ## Related Projects
 
