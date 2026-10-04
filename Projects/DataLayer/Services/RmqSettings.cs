@@ -1,3 +1,5 @@
+namespace DataLayer.Services;
+
 public class RmqSettings
 {
     public string ConnectionString { get; init; } = string.Empty;
