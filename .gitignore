@@ -53,7 +53,41 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
+# User-specific IDE files
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+
+# Rider / JetBrains
+.idea/*                                                                                                                                                                 │ 58 +*.suo                                                                               
+!.idea/.idea.InvoiceCoreApp/                                                                                                                                            │ 59 +*.userprefs                                                                         
+.idea/.idea.InvoiceCoreApp/*                                                                                                                                            │ 60 +*.DotSettings.user                                                                  
+!.idea/.idea.InvoiceCoreApp/.idea/                                                                                                                                      │ 61 +                                                                                    
+.idea/.idea.InvoiceCoreApp/.idea/*
+                     
+# Visual Studio
+.vs/
+
+# Code coverage
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Secrets / local config
+.env
+*.pfx
+appsettings.*.local.json
+
+# Qodana local results
+.qodana/
+
+# OS files
+Thumbs.db
+.DS_Store
+
 **/wwwroot/lib/*
-**/.vs/*
 
 Invoices.db*
