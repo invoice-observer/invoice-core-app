@@ -1,9 +1,9 @@
 namespace DataLayer.Services;
 
 public class RmqSettings
-{
-    public string ConnectionString { get; } = string.Empty;
-    public string ExchangeName { get; } = string.Empty;
-    public string QueueName { get; } = string.Empty;
-    public string RoutingKey { get; } = string.Empty;
+{   // can be read out of configuration (appsettings.json)
+    public required string ConnectionString { get; init; } = string.Empty;
+    public required string ExchangeName { get; init; } = string.Empty;
+    public required string QueueName { get; init; } = string.Empty;
+    public required string RoutingKey { get; init; } = string.Empty;
 }

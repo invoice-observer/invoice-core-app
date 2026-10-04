@@ -28,7 +28,7 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
         var rmqSettings = sp.GetRequiredService<IOptions<RmqSettings>>().Value;
         return new ConnectionFactory
         {
-            Uri = new Uri(rmqSettings.ConnectionString),
+            Uri = new Uri(rmqSettings.ConnectionString)
         };
     });
     builder.Services.AddSingleton<IMessagePublisherService, RmqPublisherService>();
