@@ -40,7 +40,7 @@ namespace Tests.NUnit.Infrastructure
 
             // Use in-memory database:
             services.AddDbContext<InvoiceDbContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "DB-" + Guid.NewGuid().ToString()));
+                options.UseInMemoryDatabase(databaseName: "DB-" + Guid.NewGuid()));
 
 
 
