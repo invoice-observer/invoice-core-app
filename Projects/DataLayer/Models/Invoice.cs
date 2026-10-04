@@ -8,7 +8,7 @@ namespace DataLayer.Models
         [MaxLength(200)] public string Description { get; init; } = string.Empty;
         public DateTime DueDate { get; init; }
         [MaxLength(100)] public string Supplier { get; init; } = string.Empty;
-        public List<InvoiceLine> InvoiceLines { get; set; } = [];
+        public List<InvoiceLine> InvoiceLines { get; init; } = [];
     }
 
     public class InvoiceLine

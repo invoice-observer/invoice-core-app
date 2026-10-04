@@ -31,15 +31,15 @@
         {
             <div class="row mb-2">
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[@i].Description" class="form-control"
+                    <input asp-for="Invoice.InvoiceLines[i].Description" class="form-control"
                         placeholder="Description" />
                 </div>
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[@i].Price" class="form-control" placeholder="Price"
+                    <input asp-for="Invoice.InvoiceLines[i].Price" class="form-control" placeholder="Price"
                         type="number" step="0.01" />
                 </div>
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[@i].Quantity" class="form-control" placeholder="Quantity"
+                    <input asp-for="Invoice.InvoiceLines[i].Quantity" class="form-control" placeholder="Quantity"
                         type="number" />
                 </div>
                 <div class="col">
