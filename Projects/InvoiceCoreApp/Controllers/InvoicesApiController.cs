@@ -1,7 +1,6 @@
 using DataLayer.Models;
 using DataLayer.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading;
 
 namespace InvoiceCoreApp.Controllers
 {

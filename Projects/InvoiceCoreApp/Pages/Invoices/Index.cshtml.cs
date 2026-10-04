@@ -1,7 +1,6 @@
 using DataLayer.Models;
 using DataLayer.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Threading;
 
 namespace InvoiceCoreApp.Pages.Invoices
 {

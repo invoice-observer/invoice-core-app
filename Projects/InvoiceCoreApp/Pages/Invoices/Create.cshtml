@@ -1,6 +1,5 @@
 @page
-@using global::DataLayer.Models
-@model InvoiceCoreApp.Pages.Invoices.CreateModel
+@model CreateModel
 @{
     ViewData["Title"] = "Create Invoice";
 }
@@ -43,7 +42,7 @@
                         type="number" />
                 </div>
                 <div class="col">
-                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="@i" class="btn btn-danger btn-sm">Delete</button>
+                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="i" class="btn btn-danger btn-sm">Delete</button>
                 </div>
             </div>
         }

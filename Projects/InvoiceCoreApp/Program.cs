@@ -1,7 +1,10 @@
+using System.Text;
 using DataLayer;
 using DataLayer.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,9 +42,9 @@ else
 const string key = "super_secret_jwt_key_12345_super_secret_key";
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults
             .AuthenticationScheme;
-        options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults
             .AuthenticationScheme;
     })
     .AddCookie(options =>
@@ -49,14 +52,14 @@ builder.Services.AddAuthentication(options =>
         options.LoginPath = "/Login"; // Redirect to login page if not authenticated
     }).AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey =
-                new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key))
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
         };
     });
 

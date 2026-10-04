@@ -1,8 +1,8 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json;
 
 namespace DataLayer.Services
 {
@@ -97,7 +97,7 @@ namespace DataLayer.Services
                 var message = JsonSerializer.Serialize(data);
                 var body = Encoding.UTF8.GetBytes(message);
 
-                var (formattedMessage, isJson) = FormatMessageAsJsonOrText(System.Text.Encoding.UTF8.GetString(body));
+                var (formattedMessage, isJson) = FormatMessageAsJsonOrText(Encoding.UTF8.GetString(body));
                 if (isJson)
                 {
                     logger.LogInformation("Publishing JSON message:\n      Routing key: {RoutingKey}\n      Message: {FormattedJson}",
@@ -177,18 +177,18 @@ namespace DataLayer.Services
         {
             try
             {
-                var jsonObj = System.Text.Json.JsonDocument.Parse(messageRaw);
-                var formattedMessage = System.Text.Json.JsonSerializer.Serialize(
+                var jsonObj = JsonDocument.Parse(messageRaw);
+                var formattedMessage = JsonSerializer.Serialize(
                     jsonObj,
 #pragma warning disable CA1869
-                    new System.Text.Json.JsonSerializerOptions
+                    new JsonSerializerOptions
 #pragma warning restore CA1869
                     {
                         WriteIndented = true
                     });
                 return (formattedMessage, true);
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
                 return (messageRaw, false);
             }

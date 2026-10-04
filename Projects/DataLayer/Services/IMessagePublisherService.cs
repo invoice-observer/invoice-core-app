@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace DataLayer.Services
 {
     public interface IMessagePublisherService
