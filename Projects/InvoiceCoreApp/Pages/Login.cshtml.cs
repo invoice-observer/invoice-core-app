@@ -19,7 +19,8 @@ namespace InvoiceCoreApp.Pages
         public async Task<IActionResult> OnPostAsync()
         {
             using var client = new HttpClient();
-            client.BaseAddress = new Uri("https://localhost:7052");
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            client.BaseAddress = new Uri(baseUrl);
             var response = await client.PostAsJsonAsync("/api/auth/login", new { Username, Password });
             if (response.IsSuccessStatusCode)
             {   
