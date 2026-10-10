@@ -71,8 +71,24 @@ All invoice endpoints require valid JWT authentication.
 
 1. Clone the repository
 2. [Re]configure connection strings in appsettings.json
-3. Start the API service
-4. Start the console processing service
+3. Provide the RabbitMQ password as a secret (see below)
+4. Start the API service
+5. Start the console processing service
+
+### RabbitMQ Configuration and Secrets
+
+The `RabbitMQ` section of `appsettings.json` holds only non-secret values: the broker URI **without credentials**
+(`amqps://host/vhost`), `UserName`, exchange, queue and routing key. The `UserPassword` is never committed;
+it is supplied through the standard configuration providers and set on the `ConnectionFactory` directly,
+so no URI escaping of special characters is needed and the password never appears in a string that could be logged.
+
+- Development (User Secrets):
+  ```
+  dotnet user-secrets set "RabbitMQ:UserPassword" "<password>" --project Projects/InvoiceCoreApp
+  ```
+- Production: environment variable `RabbitMQ__UserPassword` (or a Key Vault / Kubernetes secret mapped to it).
+
+Use `amqps://` (TLS) outside of local development and a dedicated least-privilege broker user per service.
 
 ### Testing via Postman
 

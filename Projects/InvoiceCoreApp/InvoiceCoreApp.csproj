@@ -4,6 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>7a468509-c78e-49aa-8b86-28995b0367ee</UserSecretsId>
     </PropertyGroup>
 
     <Target Name="RestoreClientSideLibraries" BeforeTargets="Build">
