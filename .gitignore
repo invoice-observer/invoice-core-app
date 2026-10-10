@@ -91,3 +91,6 @@ Thumbs.db
 **/wwwroot/lib/*
 
 Invoices.db*
+
+# Per-user ReSharper/Rider settings
+*.DotSettings.user
