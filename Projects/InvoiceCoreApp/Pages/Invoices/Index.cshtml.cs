@@ -1,5 +1,6 @@
 using DataLayer.Models;
 using DataLayer.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace InvoiceCoreApp.Pages.Invoices
@@ -11,6 +12,12 @@ namespace InvoiceCoreApp.Pages.Invoices
         public async Task OnGetAsync(CancellationToken cancellationToken)
         {
             Invoices = await service.GetAllAsync(cancellationToken);
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id, CancellationToken cancellationToken)
+        {
+            await service.DeleteAsync(id, cancellationToken);
+            return RedirectToPage();
         }
     }
 }
