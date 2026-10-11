@@ -131,6 +131,67 @@
             "name": "Invoices",
             "item": [
                 {
+                    "name": "Get All Invoices - Unauthorized",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Missing token returns 401 with Bearer challenge\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "    pm.expect(pm.response.headers.get('WWW-Authenticate')).to.include('Bearer');",
+                                    "    pm.expect(pm.response.headers.has('Location')).to.be.false;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Invoices - Invalid Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Invalid token returns 401\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "    pm.expect(pm.response.headers.get('WWW-Authenticate')).to.include('Bearer');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer invalid-token",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        }
+                    }
+                },
+                {
                     "name": "Get All Invoices",
                     "event": [
                         {
@@ -263,6 +324,7 @@
                             "host": [ "{{base_url}}" ],
                             "path": [ "api", "invoices" ]
                         },
+                        "auth": { "type": "noauth" },
                         "description": "Test invoice creation without authentication"
                     }
                 }
@@ -347,6 +409,48 @@
                             "host": [ "{{base_url}}" ],
                             "path": [ "api", "invoices" ]
                         }
+                    }
+                },
+                {
+                    "name": "3. JWT Logout",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.environment.unset('jwt_token');",
+                                    "pm.collectionVariables.unset('jwt_token');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Stored JWT token is cleared\", function () {",
+                                    "    pm.expect(pm.environment.has('jwt_token')).to.be.false;",
+                                    "    pm.expect(pm.collectionVariables.has('jwt_token')).to.be.false;",
+                                    "});",
+                                    "pm.test(\"Invoice access without token returns 401\", function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "    pm.expect(pm.response.headers.get('WWW-Authenticate')).to.include('Bearer');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": [ "{{base_url}}" ],
+                            "path": [ "api", "invoices" ]
+                        },
+                        "description": "Client-side JWT logout: clear the stored token and verify unauthenticated access is denied. Does not revoke previously issued tokens."
                     }
                 }
             ]
