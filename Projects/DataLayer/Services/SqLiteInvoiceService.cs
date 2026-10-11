@@ -44,9 +44,11 @@ namespace DataLayer.Services
 
         public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            var invoice = await _db.Invoices.FindAsync([id], cancellationToken);
+            var invoice = await _db.Invoices.Include(i => i.InvoiceLines)
+                .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
             if (invoice != null)
             {
+                _db.InvoiceLines.RemoveRange(invoice.InvoiceLines);
                 _db.Invoices.Remove(invoice);
                 await _db.SaveChangesAsync(cancellationToken);
                 

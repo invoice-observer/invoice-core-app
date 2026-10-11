@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using Microsoft.AspNetCore.Mvc;
+
 namespace InvoiceCoreApp.Pages
 {
-    public class IndexModel(ILogger<IndexModel> logger) : PageModel
+    public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger = logger;
-
-        public void OnGet()
+        public IActionResult OnGet()
         {
-
+            return RedirectToPage("/Invoices/Index");
         }
     }
 }

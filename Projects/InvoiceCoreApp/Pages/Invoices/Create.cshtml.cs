@@ -11,7 +11,7 @@ namespace InvoiceCoreApp.Pages.Invoices
 
         public void OnGet()
         {
-            var formatted = DateTime.Now.ToString("yyyyMMdd-HHmm");
+            var formatted = DateTime.Now.ToString("yyyyMMdd-HHmmss.fff");
             Invoice = new Invoice
             {
                 Description = $"Description-{formatted}",
@@ -22,7 +22,8 @@ namespace InvoiceCoreApp.Pages.Invoices
         }
         public IActionResult OnPostAddLine()
         {
-            Invoice.InvoiceLines.Add(new InvoiceLine());
+            var formatted = DateTime.Now.ToString("yyyyMMdd-HHmmss.fff");
+            Invoice.InvoiceLines.Add(new InvoiceLine{Description = $"Line-{formatted}", Quantity = 1});
             ModelState.Clear();
             return Page();
         }

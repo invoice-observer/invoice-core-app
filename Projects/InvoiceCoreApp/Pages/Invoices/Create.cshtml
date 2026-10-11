@@ -28,21 +28,22 @@
         </div>
         @for (var i = 0; i < Model.Invoice.InvoiceLines.Count; i++)
         {
+            var index = i;
             <div class="row mb-2">
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[i].Description" class="form-control"
+                    <input asp-for="Invoice.InvoiceLines[index].Description" class="form-control"
                         placeholder="Description" />
                 </div>
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[i].Price" class="form-control" placeholder="Price"
+                    <input asp-for="Invoice.InvoiceLines[index].Price" class="form-control" placeholder="Price"
                         type="number" step="0.01" />
                 </div>
                 <div class="col">
-                    <input asp-for="Invoice.InvoiceLines[i].Quantity" class="form-control" placeholder="Quantity"
+                    <input asp-for="Invoice.InvoiceLines[index].Quantity" class="form-control" placeholder="Quantity"
                         type="number" />
                 </div>
                 <div class="col">
-                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="@i" class="btn btn-danger btn-sm">Delete</button>
+                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="@index" class="btn btn-danger btn-sm">Delete</button>
                 </div>
             </div>
         }

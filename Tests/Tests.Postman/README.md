@@ -30,7 +30,8 @@ Postman collections and environments for API workflow testing.
 - **Create Invoice** - Create new invoice with invoice lines (requires authentication)
 
 ### Complete Workflow
-- **End-to-End Test** - Complete workflow: Login → Create Invoice → Verify Invoice
+- **End-to-End Test** - Complete workflow: Login → Create Invoice → JWT Logout.
+- **JWT Logout** - Clears `jwt_token` from environment and collection variables, then verifies invoice access without a token returns `401`. Run this step last; log in again before running authenticated requests. This is client-side logout and does not revoke issued tokens.
 
 ## How to Use
 

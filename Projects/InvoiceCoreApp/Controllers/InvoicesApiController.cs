@@ -1,10 +1,13 @@
 using DataLayer.Models;
 using DataLayer.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvoiceCoreApp.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/invoices")]
     public class InvoicesApiController(IInvoiceService service) : ControllerBase
     {
