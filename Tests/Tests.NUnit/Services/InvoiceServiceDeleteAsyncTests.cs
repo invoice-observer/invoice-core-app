@@ -21,7 +21,7 @@ namespace Tests.NUnit.Services
             var options = new DbContextOptionsBuilder<InvoiceDbContext>().UseSqlite(connection).Options;
             await using var db = new InvoiceDbContext(options);
             var publisher = new Mock<IMessagePublisherService>();
-            var service = new SqLiteInvoiceService(db, publisher.Object);
+            var service = new SqLiteInvoiceService(db, publisher.Object, Mock.Of<IMessageReadiness>(r => r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
             var invoice = new Invoice
             {
                 Description = "Invoice to delete",
@@ -62,7 +62,7 @@ namespace Tests.NUnit.Services
             var options = new DbContextOptionsBuilder<InvoiceDbContext>().UseSqlite(connection).Options;
             await using var db = new InvoiceDbContext(options);
             var publisher = new Mock<IMessagePublisherService>();
-            var service = new SqLiteInvoiceService(db, publisher.Object);
+            var service = new SqLiteInvoiceService(db, publisher.Object, Mock.Of<IMessageReadiness>(r => r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
 
             await service.DeleteAsync(123);
 

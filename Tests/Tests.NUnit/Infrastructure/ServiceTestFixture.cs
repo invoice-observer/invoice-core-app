@@ -33,6 +33,8 @@ namespace Tests.NUnit.Infrastructure
             // Use publisher mock:
             var mockMessagePublisher = new Mock<IMessagePublisherService>();
             services.AddSingleton(mockMessagePublisher.Object);
+            services.AddSingleton(Mock.Of<IMessageReadiness>(r =>
+                r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
 
             // services.AddDbContext<InvoiceDbContext>(options =>
             //     options.UseSqlite("Data Source=Invoices.db"));
