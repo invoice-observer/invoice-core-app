@@ -77,9 +77,22 @@ namespace DataLayer.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to initialize RabbitMQ connection");
+                logger.LogError("Failed to initialize RabbitMQ connection ({ExceptionType})", ex.GetType().Name);
                 await CleanupResourcesAsync();
                 throw;
+            }
+        }
+
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
+        {
+            await _initializationLock.WaitAsync(cancellationToken);
+            try
+            {
+                await EnsureInitializedAsync(cancellationToken);
+            }
+            finally
+            {
+                _initializationLock.Release();
             }
         }
 
@@ -157,7 +170,7 @@ namespace DataLayer.Services
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Error during RabbitMQ resource cleanup");
+                logger.LogWarning("Error during RabbitMQ resource cleanup ({ExceptionType})", ex.GetType().Name);
             }
             finally
             {

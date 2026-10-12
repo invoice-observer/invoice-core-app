@@ -1,6 +1,7 @@
 using System.Text;
 using DataLayer;
 using DataLayer.Services;
+using InvoiceCoreApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -33,9 +34,7 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
             Password = rmqSettings.UserPassword
         };
     });
-    builder.Services.AddSingleton<RmqPublisherService>();
-    builder.Services.AddSingleton<IMessagePublisherService>(sp => sp.GetRequiredService<RmqPublisherService>());
-    builder.Services.AddSingleton<IMessageReadiness>(sp => sp.GetRequiredService<RmqPublisherService>());
+    builder.Services.AddRmqPublisher();
 
 }
 else

@@ -1,4 +1,5 @@
 using DataLayer.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -39,6 +40,43 @@ public class RmqPublisherReadinessTests
 
     [TearDown]
     public async Task TearDown() => await _publisher.DisposeAsync();
+
+    [Test]
+    public async Task ExplicitInitialization_PreparesTopologyWithoutPublishing_AndReusesResources()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        await _publisher.InitializeAsync(token);
+        await _publisher.InitializeAsync(token);
+        AssertState(MessageReadinessState.Ready);
+        _factory.Verify(f => f.CreateConnectionAsync(token), Times.Once);
+        _connection.Verify(c => c.CreateChannelAsync(null, token), Times.Once);
+        _channel.Verify(c => c.ExchangeDeclareAsync("invoices", "topic", true, false, null, false, false, token), Times.Once);
+        _channel.Verify(c => c.QueueDeclareAsync("invoices", true, false, false, null, false, false, token), Times.Once);
+        _channel.Verify(c => c.QueueBindAsync("invoices", "invoices", "invoice.*", null, false, token), Times.Once);
+        _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task InitializationFailure_DoesNotLogExceptionCredentials()
+    {
+        var logger = new Mock<ILogger<RmqPublisherService>>();
+        const string secret = "amqp://user:private-password@broker";
+        _factory.Setup(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(secret));
+        await using var publisher = new RmqPublisherService(_factory.Object, Options.Create(new RmqSettings
+        {
+            ConnectionString = "amqp://unused", UserName = "", UserPassword = "",
+            ExchangeName = "invoices", QueueName = "invoices", RoutingKey = "invoice.*"
+        }), logger.Object);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => publisher.InitializeAsync());
+        logger.Verify(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((value, type) => value != null && value.ToString()!.Contains(secret)),
+            It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
+        logger.Verify(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
+            It.Is<Exception?>(ex => ex != null), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
+    }
 
     [Test]
     public void InitialState_IsConnecting()
