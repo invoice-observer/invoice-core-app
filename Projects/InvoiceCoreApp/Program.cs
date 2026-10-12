@@ -33,7 +33,9 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
             Password = rmqSettings.UserPassword
         };
     });
-    builder.Services.AddSingleton<IMessagePublisherService, RmqPublisherService>();
+    builder.Services.AddSingleton<RmqPublisherService>();
+    builder.Services.AddSingleton<IMessagePublisherService>(sp => sp.GetRequiredService<RmqPublisherService>());
+    builder.Services.AddSingleton<IMessageReadiness>(sp => sp.GetRequiredService<RmqPublisherService>());
 
 }
 else
