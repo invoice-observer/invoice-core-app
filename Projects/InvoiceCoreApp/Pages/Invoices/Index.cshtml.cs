@@ -16,9 +16,17 @@ namespace InvoiceCoreApp.Pages.Invoices
 
         public async Task<IActionResult> OnPostDeleteAsync(int id, CancellationToken cancellationToken)
         {
-            await service.DeleteAsync(id, cancellationToken);
+            try
+            {
+                await service.DeleteAsync(id, cancellationToken);
+            }
+            catch (MessagingUnavailableException exception)
+            {
+                Invoices = await service.GetAllAsync(cancellationToken);
+                ModelState.AddModelError(string.Empty, exception.Message);
+                return Page();
+            }
             return RedirectToPage();
         }
     }
 }
-    

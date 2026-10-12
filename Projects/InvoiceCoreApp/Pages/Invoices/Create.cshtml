@@ -6,6 +6,7 @@
 
 <h1>Create Invoice</h1>
 <form method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
     <div class="mb-3">
         <label asp-for="Invoice.Description" class="form-label fw-bold"></label>
         <input asp-for="Invoice.Description" class="form-control" />

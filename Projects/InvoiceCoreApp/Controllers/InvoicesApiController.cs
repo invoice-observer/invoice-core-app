@@ -25,7 +25,14 @@ namespace InvoiceCoreApp.Controllers
         [HttpPost]
         public async Task<ActionResult<Invoice>> Post([FromBody] Invoice invoice, CancellationToken cancellationToken)
         {
-            await service.AddAsync(invoice, cancellationToken);
+            try
+            {
+                await service.AddAsync(invoice, cancellationToken);
+            }
+            catch (MessagingUnavailableException exception)
+            {
+                return ChangesUnavailable(exception);
+            }
             return CreatedAtAction(nameof(Get), new { id = invoice.Id }, invoice);
         }
 
@@ -33,15 +40,39 @@ namespace InvoiceCoreApp.Controllers
         public async Task<IActionResult> Put(int id, [FromBody] Invoice invoice, CancellationToken cancellationToken)
         {
             if (id != invoice.Id) return BadRequest();
-            await service.UpdateAsync(invoice, cancellationToken);
+            try
+            {
+                await service.UpdateAsync(invoice, cancellationToken);
+            }
+            catch (MessagingUnavailableException exception)
+            {
+                return ChangesUnavailable(exception);
+            }
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
-            await service.DeleteAsync(id, cancellationToken);
+            try
+            {
+                await service.DeleteAsync(id, cancellationToken);
+            }
+            catch (MessagingUnavailableException exception)
+            {
+                return ChangesUnavailable(exception);
+            }
             return NoContent();
         }
+
+        private static ObjectResult ChangesUnavailable(MessagingUnavailableException exception) => new(new ProblemDetails
+        {
+            Status = StatusCodes.Status503ServiceUnavailable,
+            Title = "Invoice changes unavailable",
+            Detail = exception.Message
+        })
+        {
+            StatusCode = StatusCodes.Status503ServiceUnavailable
+        };
     }
 }
