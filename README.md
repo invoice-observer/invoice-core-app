@@ -50,7 +50,7 @@ public class InvoiceLine
 
 ### Technologies Used
 
-- .NET 5 SDK or later
+- .NET 10.0
 - Entity Framework Core tools
 - Postman (for API testing)
 - NUnit (for unit testing)
@@ -60,8 +60,8 @@ public class InvoiceLine
 - GET /api/invoices — Returns all invoices.
 - GET /api/invoices/{id} — Returns a specific invoice by ID.
 - POST /api/invoices — Creates a new invoice.
-- (not implemented) PUT /api/invoices/{id} — Updates an existing invoice.
-- (not implemented) DELETE /api/invoices/{id} — Deletes an invoice by ID.
+- PUT /api/invoices/{id} — Updates an existing invoice.
+- DELETE /api/invoices/{id} — Deletes an invoice by ID.
 
 All invoice endpoints require valid JWT authentication.
 
