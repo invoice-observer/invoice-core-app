@@ -1,7 +1,9 @@
 @page
 @model CreateModel
+@inject InvoiceCoreApp.Services.InvoiceWriteStatus WriteStatus
 @{
     ViewData["Title"] = "Create Invoice";
+    var canWrite = WriteStatus.Snapshot.CanWriteInvoices;
 }
 
 <h1>Create Invoice</h1>
@@ -44,13 +46,13 @@
                         type="number" />
                 </div>
                 <div class="col">
-                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="@index" class="btn btn-danger btn-sm">Delete</button>
+                    <button type="submit" asp-page-handler="RemoveLine" asp-route-index="@index" class="btn btn-danger btn-sm" data-invoice-write disabled="@(!canWrite)">Delete</button>
                 </div>
             </div>
         }
-        <button type="submit" asp-page-handler="AddLine" class="btn btn-secondary btn-sm mt-2 mb-4">Add Line</button>
+        <button type="submit" asp-page-handler="AddLine" class="btn btn-secondary btn-sm mt-2 mb-4" data-invoice-write disabled="@(!canWrite)">Add Line</button>
     </div>
     <div class="mb-4"></div>
-    <button type="submit" asp-page-handler="Save" class="btn btn-primary">Create</button>
+    <button type="submit" asp-page-handler="Save" class="btn btn-primary" data-invoice-write disabled="@(!canWrite)">Create</button>
     <a class="btn btn-secondary" asp-page="Index">Cancel</a>
 </form>

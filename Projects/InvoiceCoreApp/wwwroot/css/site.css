@@ -20,3 +20,9 @@ html {
 body {
   margin-bottom: 60px;
 }
+.messaging-status { border-left: .4rem solid; padding: .4rem .7rem; }
+.status-amber { border-color: #a56800; color: #754a00; }
+.status-green { border-color: #198754; color: #146c43; }
+.status-red { border-color: #dc3545; color: #b02a37; }
+.status-neutral { border-color: #6c757d; color: #565e64; }
+a[data-invoice-write][aria-disabled="true"] { opacity: .65; cursor: not-allowed; }

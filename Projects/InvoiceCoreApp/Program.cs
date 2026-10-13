@@ -3,6 +3,7 @@ using DataLayer;
 using DataLayer.Services;
 using InvoiceCoreApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -35,11 +36,13 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
         };
     });
     builder.Services.AddRmqPublisher();
+    builder.Services.AddScoped(sp => new InvoiceWriteStatus(sp.GetRequiredService<IMessageReadiness>()));
 
 }
 else
 {
     builder.Services.AddSingleton<IInvoiceService, MockInvoiceService>();
+    builder.Services.AddScoped(_ => new InvoiceWriteStatus());
 }
 
 const string key = "super_secret_jwt_key_12345_super_secret_key";
@@ -49,6 +52,13 @@ builder.Services.AddAuthentication(options =>
             .AuthenticationScheme;
         options.DefaultChallengeScheme = CookieAuthenticationDefaults
             .AuthenticationScheme;
+    })
+    .AddPolicyScheme("InvoiceStatus", null, options =>
+    {
+        options.ForwardDefaultSelector = context =>
+            context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? JwtBearerDefaults.AuthenticationScheme : CookieAuthenticationDefaults.AuthenticationScheme;
+        options.ForwardChallenge = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddCookie(options =>
     {

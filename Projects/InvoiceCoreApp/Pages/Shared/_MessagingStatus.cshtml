@@ -1,0 +1,14 @@
+@inject InvoiceCoreApp.Services.InvoiceWriteStatus WriteStatus
+@{
+    var status = WriteStatus.Snapshot;
+    var tone = status.RabbitMq switch
+    {
+        "Connecting" => "amber",
+        "Ready" => "green",
+        "NotRequired" => "neutral",
+        _ => "red"
+    };
+    var text = status.RabbitMq == "NotRequired" ? "RabbitMQ not required" : $"RabbitMQ {status.RabbitMq}";
+}
+<div id="messaging-status" class="messaging-status status-@tone mb-3" role="status" aria-live="polite"
+     data-status-url="@Url.Content("~/api/status")">@text</div>
