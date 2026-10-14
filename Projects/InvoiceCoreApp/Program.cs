@@ -32,7 +32,8 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
         {
             Uri = new Uri(rmqSettings.ConnectionString),
             UserName = rmqSettings.UserName,
-            Password = rmqSettings.UserPassword
+            Password = rmqSettings.UserPassword,
+            AutomaticRecoveryEnabled = false
         };
     });
     builder.Services.AddRmqPublisher();

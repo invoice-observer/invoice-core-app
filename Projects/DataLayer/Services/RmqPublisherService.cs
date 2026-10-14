@@ -67,6 +67,7 @@ namespace DataLayer.Services
                     routingKey: config.Value.RoutingKey,
                     cancellationToken: cancellationToken);
 
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!_connection.IsOpen || !_channel.IsOpen ||
                     Interlocked.CompareExchange(ref _readiness, (int)MessageReadinessState.Ready,
                         (int)MessageReadinessState.Connecting) != (int)MessageReadinessState.Connecting)
@@ -99,28 +100,27 @@ namespace DataLayer.Services
         public async Task PublishInvoiceEventAsync(string eventType, object data,
             CancellationToken cancellationToken = default)
         {
+            var routingKey = $"invoice.{eventType.ToLower()}";
+            var message = JsonSerializer.Serialize(data);
+            var body = Encoding.UTF8.GetBytes(message);
+            var (formattedMessage, isJson) = FormatMessageAsJsonOrText(message);
+            var properties = new BasicProperties
+            {
+                Persistent = true,
+                ContentType = "application/json",
+                Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            };
+
             await _initializationLock.WaitAsync(cancellationToken);
             try
             {
                 var (_, channel) = await EnsureInitializedAsync(cancellationToken);
 
-                var routingKey = $"invoice.{eventType.ToLower()}";
-                var message = JsonSerializer.Serialize(data);
-                var body = Encoding.UTF8.GetBytes(message);
-
-                var (formattedMessage, isJson) = FormatMessageAsJsonOrText(Encoding.UTF8.GetString(body));
                 if (isJson)
                 {
                     logger.LogInformation("Publishing JSON message:\n      Routing key: {RoutingKey}\n      Message: {FormattedJson}",
                         routingKey, formattedMessage);
                 }
-
-                var properties = new BasicProperties
-                {
-                    Persistent = true,
-                    ContentType = "application/json",
-                    Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
-                };
 
                 await channel.BasicPublishAsync(
                     config.Value.ExchangeName,
@@ -130,6 +130,14 @@ namespace DataLayer.Services
                     body,
                     cancellationToken);
 
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancellation alone says nothing about delivery or connection health.
+                // Only downgrade; a concurrent shutdown must never be overwritten with Ready.
+                if (_connection is not { IsOpen: true } || _channel is not { IsOpen: true })
+                    Volatile.Write(ref _readiness, (int)MessageReadinessState.Unavailable);
+                throw;
             }
             catch (Exception ex)
             {
