@@ -253,9 +253,151 @@ public class RmqPublisherReadinessTests
         _factory.Verify(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Test]
+    public async Task CallerCancellation_WhileWaitingForLock_PreservesReady()
+    {
+        await _publisher.InitializeAsync();
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _channel.Setup(c => c.BasicPublishAsync("invoices", "invoice.created", true,
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask(release.Task));
+        var holder = _publisher.PublishInvoiceEventAsync("created", new { Id = 1 });
+        using var cancellation = new CancellationTokenSource();
+        var waiter = _publisher.PublishInvoiceEventAsync("created", new { Id = 2 }, cancellation.Token);
+        try
+        {
+            Assert.That(waiter.IsCompleted, Is.False);
+            cancellation.Cancel();
+            await Assert.CatchAsync<OperationCanceledException>(() => waiter);
+            AssertState(MessageReadinessState.Ready);
+            _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+                It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await holder;
+        }
+    }
+
+    [TestCase("none")]
+    [TestCase("connection")]
+    [TestCase("channel")]
+    [TestCase("closed connection")]
+    [TestCase("closed channel")]
+    public async Task CallerCancellation_DuringPublish_PreservesHealthOrShutdown(string shutdown)
+    {
+        await _publisher.InitializeAsync();
+        using var cancellation = new CancellationTokenSource();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _channel.Setup(c => c.BasicPublishAsync("invoices", "invoice.created", true,
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), cancellation.Token))
+            .Returns(() => { entered.SetResult(); return new ValueTask(release.Task); });
+        var publish = _publisher.PublishInvoiceEventAsync("created", new { Id = 1 }, cancellation.Token);
+        await entered.Task;
+        try
+        {
+            cancellation.Cancel();
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, 320, "Test shutdown");
+            if (shutdown == "connection")
+                await _connection.RaiseAsync(c => c.ConnectionShutdownAsync += null, _connection.Object, reason);
+            if (shutdown == "channel")
+                await _channel.RaiseAsync(c => c.ChannelShutdownAsync += null, _channel.Object, reason);
+            if (shutdown == "closed connection") _connection.SetupGet(c => c.IsOpen).Returns(false);
+            if (shutdown == "closed channel") _channel.SetupGet(c => c.IsOpen).Returns(false);
+        }
+        finally
+        {
+            release.TrySetCanceled(cancellation.Token);
+            await Assert.CatchAsync<OperationCanceledException>(() => publish);
+        }
+        AssertState(shutdown == "none" ? MessageReadinessState.Ready : MessageReadinessState.Unavailable);
+        _factory.Verify(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task PublishFailure_WithOrWithoutCallerCancellation_IsUnavailable(bool cancelCaller)
+    {
+        await _publisher.InitializeAsync();
+        using var cancellation = new CancellationTokenSource();
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _channel.Setup(c => c.BasicPublishAsync("invoices", "invoice.created", true,
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), cancellation.Token))
+            .Returns(new ValueTask(release.Task));
+        var publish = _publisher.PublishInvoiceEventAsync("created", new { Id = 1 }, cancellation.Token);
+        if (cancelCaller) cancellation.Cancel();
+        release.SetException(new InvalidOperationException("Publish failed"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => publish);
+        AssertState(MessageReadinessState.Unavailable);
+    }
+
+    [Test]
+    public async Task PublishCancellation_WithoutCallerCancellation_IsUnavailable()
+    {
+        await _publisher.InitializeAsync();
+        _channel.Setup(c => c.BasicPublishAsync("invoices", "invoice.created", true,
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        await Assert.CatchAsync<OperationCanceledException>(() =>
+            _publisher.PublishInvoiceEventAsync("created", new { Id = 1 }));
+        AssertState(MessageReadinessState.Unavailable);
+    }
+
+    [TestCase("channel", false)]
+    [TestCase("binding", false)]
+    [TestCase("binding", true)]
+    public async Task InitializationCancellation_CleansPartialResources_AndNeverBecomesReady(
+        string stage, bool setupCompletesDespiteCancellation)
+    {
+        using var cancellation = new CancellationTokenSource();
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var channel = new TaskCompletionSource<IChannel>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (stage == "channel")
+            _connection.Setup(c => c.CreateChannelAsync(null, cancellation.Token)).Returns(channel.Task);
+        else
+            _channel.Setup(c => c.QueueBindAsync("invoices", "invoices", "invoice.*", null, false,
+                cancellation.Token)).Returns(release.Task);
+        var initialization = _publisher.InitializeAsync(cancellation.Token);
+        AssertState(MessageReadinessState.Connecting);
+        cancellation.Cancel();
+        if (stage == "channel") channel.SetCanceled(cancellation.Token);
+        else if (setupCompletesDespiteCancellation) release.SetResult();
+        else release.SetCanceled(cancellation.Token);
+
+        await Assert.CatchAsync<OperationCanceledException>(() => initialization);
+        AssertState(MessageReadinessState.Unavailable);
+        _connection.Verify(c => c.DisposeAsync(), Times.Once);
+        _channel.Verify(c => c.DisposeAsync(), stage == "channel" ? Times.Never : Times.Once);
+        _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     private void AssertState(MessageReadinessState expected)
     {
         Assert.That(_readiness.State, Is.EqualTo(expected));
         Assert.That(_readiness.CanWriteInvoices, Is.EqualTo(expected == MessageReadinessState.Ready));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task SerializationFailure_PreservesState_WithoutMessagingOperations(bool initialized)
+    {
+        if (initialized) await _publisher.InitializeAsync();
+        var initialState = _readiness.State;
+        var invalidPayload = new List<object>();
+        invalidPayload.Add(invalidPayload);
+
+        await Assert.ThrowsAsync<System.Text.Json.JsonException>(() =>
+            _publisher.PublishInvoiceEventAsync("created", invalidPayload));
+
+        AssertState(initialState);
+        _factory.Verify(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()),
+            initialized ? Times.Once : Times.Never);
+        _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+            It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
