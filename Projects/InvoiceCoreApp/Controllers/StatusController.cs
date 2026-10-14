@@ -13,6 +13,6 @@ public sealed class StatusController(InvoiceWriteStatus status) : ControllerBase
     public ActionResult<InvoiceWriteSnapshot> Get()
     {
         Response.Headers.CacheControl = "no-store";
-        return Ok(status.Snapshot);
+        return Ok(status.ReadSnapshot());
     }
 }

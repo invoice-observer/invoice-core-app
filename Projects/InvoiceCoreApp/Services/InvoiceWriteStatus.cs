@@ -10,10 +10,10 @@ public sealed class InvoiceWriteStatus(IMessageReadiness? readiness = null)
     private InvoiceWriteSnapshot? _snapshot;
     public InvoiceWriteSnapshot Snapshot => _snapshot ??= ReadSnapshot();
 
-    private InvoiceWriteSnapshot ReadSnapshot()
+    public InvoiceWriteSnapshot ReadSnapshot()
     {
-        if (readiness is null) return new(true, "NotRequired");
+        if (readiness is null) return new InvoiceWriteSnapshot(true, "NotRequired");
         var state = readiness.State;
-        return new(state == MessageReadinessState.Ready, state.ToString());
+        return new InvoiceWriteSnapshot(state == MessageReadinessState.Ready, state.ToString());
     }
 }
