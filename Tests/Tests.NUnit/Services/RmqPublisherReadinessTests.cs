@@ -193,6 +193,66 @@ public class RmqPublisherReadinessTests
         AssertState(MessageReadinessState.Unavailable);
     }
 
+    [TestCase("initialization", "publishing")]
+    [TestCase("initialization", "disposal")]
+    [TestCase("publishing", "initialization")]
+    [TestCase("publishing", "disposal")]
+    [TestCase("disposal", "initialization")]
+    [TestCase("disposal", "publishing")]
+    public async Task InitializationPublishingAndDisposal_AreSerialized(string holder, string waiter)
+    {
+        var timeout = TimeSpan.FromSeconds(5);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (holder != "initialization") await _publisher.InitializeAsync().WaitAsync(timeout);
+        switch (holder)
+        {
+            case "initialization":
+                _channel.Setup(c => c.QueueBindAsync("invoices", "invoices", "invoice.*", null, false,
+                    It.IsAny<CancellationToken>())).Returns(release.Task);
+                break;
+            case "publishing":
+                _channel.Setup(c => c.BasicPublishAsync("invoices", "invoice.created", true,
+                    It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                    .Returns(new ValueTask(release.Task));
+                break;
+            case "disposal":
+                _channel.Setup(c => c.DisposeAsync()).Returns(new ValueTask(release.Task));
+                break;
+        }
+
+        Task ExecuteAsync(string operation) => operation switch
+        {
+            "initialization" => _publisher.InitializeAsync(),
+            "publishing" => _publisher.PublishInvoiceEventAsync("created", new { Id = 1 }),
+            _ => _publisher.DisposeAsync().AsTask()
+        };
+
+        var holding = ExecuteAsync(holder);
+        var waiting = ExecuteAsync(waiter);
+        try
+        {
+            Assert.That(holding.IsCompleted, Is.False);
+            Assert.That(waiting.IsCompleted, Is.False);
+            if (holder == "initialization") AssertState(MessageReadinessState.Connecting);
+            if (holder == "disposal") AssertState(MessageReadinessState.Unavailable);
+            _factory.Verify(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()), Times.Once);
+            if (holder != "publishing")
+                _channel.Verify(c => c.BasicPublishAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+                    It.IsAny<BasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Never);
+            if (holder != "disposal") _channel.Verify(c => c.DisposeAsync(), Times.Never);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await holding.WaitAsync(timeout);
+            if (holder == "disposal")
+                await Assert.ThrowsAsync<ObjectDisposedException>(() => waiting.WaitAsync(timeout));
+            else
+                await waiting.WaitAsync(timeout);
+        }
+        _factory.Verify(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private void AssertState(MessageReadinessState expected)
     {
         Assert.That(_readiness.State, Is.EqualTo(expected));

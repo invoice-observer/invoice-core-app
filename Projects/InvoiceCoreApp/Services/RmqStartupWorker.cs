@@ -17,11 +17,17 @@ public sealed class RmqStartupWorker(
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                if (publisher.State == MessageReadinessState.Ready)
+                {
+                    await _delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    continue;
+                }
+
                 logger.LogInformation("Starting RabbitMQ initialization attempt");
                 try
                 {
                     await publisher.InitializeAsync(stoppingToken);
-                    return;
+                    retryIndex = 0;
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -40,7 +46,7 @@ public sealed class RmqStartupWorker(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            // Host shutdown cancels either the current attempt or its retry delay.
+            // Host shutdown cancels the current attempt, healthy wait or retry delay.
         }
     }
 }
