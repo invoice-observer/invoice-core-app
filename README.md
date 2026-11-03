@@ -1,25 +1,12 @@
-# Invoice Observer (and Invoice Core)
-
-## Overall System Architecture
-
-Invoice Observer consists of two applications, developed with a concept of independent microservices in mind:
-
-1. **Invoice Core (ASP.NET Core Application)**
-   - Authenticated endpoint for invoice submission
-   - SQLite persistence via Entity Framework
-   - RabbitMQ queue publisher for invoice events
-
-2. **Invoice Monitoring (.NET Invoice Monitoring CLI)**
-   - RabbitMQ queue consumer
-   - Message processing and display functionality
-   - Resides in a separate repository, [Invoice Monitoring](https://github.com/invoice-observer/invoice-monitoring-cli.git)
-
-## Invoice Core
+# Invoice Core
 
 ASP.NET Core MVP / API implementing a primitive invoice management with JWT authentication, simple Razor Pages UI,
 publishing events to RabbitMQ.
 
-### Key Features
+Part of Invoice Observer System. For the overall system architecture, see the
+[Invoice Observer README](https://github.com/invoice-observer/.github/blob/main/profile/README.md).
+
+## Key Features
 
 1. Endpoints for invoice management.
 2. JWT-based login for secure API access.
@@ -29,7 +16,7 @@ publishing events to RabbitMQ.
 6. [Postman Tests for API workflow verification](Tests/Tests.Postman/README.md)
 7. [Unit Tests for core invoice services using NUnit](Tests/Tests.NUnit/README.md)
 
-### Data Model
+## Data Model
 
 ```csharp
 public class Invoice
@@ -48,14 +35,14 @@ public class InvoiceLine
 }
 ```
 
-### Technologies Used
+## Technologies Used
 
 - .NET 10.0
 - Entity Framework Core tools
 - Postman (for API testing)
 - NUnit (for unit testing)
 
-### REST API Endpoints
+## REST API Endpoints
 
 - GET /api/invoices — Returns all invoices.
 - GET /api/invoices/{id} — Returns a specific invoice by ID.
@@ -67,7 +54,7 @@ All invoice endpoints require valid JWT authentication.
 
 - POST /api/auth/login — Authenticates user credentials and returns a JWT token.
 
-### Start in Development Environment
+## Start in Development Environment
 
 1. Clone the repository
 2. [Re]configure connection strings in appsettings.json
@@ -75,7 +62,7 @@ All invoice endpoints require valid JWT authentication.
 4. Start the API service
 5. Start the console processing service
 
-### RabbitMQ Configuration and Secrets
+## RabbitMQ Configuration and Secrets
 
 The `RabbitMQ` section of `appsettings.json` holds only non-secret values: the broker URI **without credentials**
 (`amqps://host/vhost`), `UserName`, exchange, queue and routing key. The `UserPassword` is never committed;
@@ -90,7 +77,7 @@ so no URI escaping of special characters is needed and the password never appear
 
 Use `amqps://` (TLS) outside of local development and a dedicated least-privilege broker user per service.
 
-### Testing via Postman
+## Testing via Postman
 
 A Postman collection is provided for comprehensive workflow testing including:
 - Authentication token acquisition
@@ -100,7 +87,7 @@ A Postman collection is provided for comprehensive workflow testing including:
 See [Tests/Tests.Postman/README.md](Tests/Tests.Postman/README.md) for details about structure,
 dependencies, and how to run the tests.
 
-### Unit Testing
+## Unit Testing
 
 Unit test coverage for the core invoice services is provided in the NUnit test project.
 See [Tests/Tests.NUnit/README.md](Tests/Tests.NUnit/README.md) for details about structure,
