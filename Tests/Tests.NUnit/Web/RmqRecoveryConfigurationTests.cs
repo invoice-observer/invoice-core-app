@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using RabbitMQ.Client;
+using Tests.NUnit.Infrastructure;
 
 namespace Tests.NUnit.Web;
 
@@ -22,6 +23,7 @@ public class RmqRecoveryConfigurationTests
         {
             builder.UseEnvironment("Testing");
             builder.UseSetting("InvoiceService", "SQLite");
+            new TestAuthSettings().Apply(builder);
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
