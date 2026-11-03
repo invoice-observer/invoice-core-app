@@ -16,7 +16,7 @@ Postman collections and environments for API workflow testing.
 - `InvoiceAPI.postman_collection.json` - Complete test suite for Invoice Core Application
 
 ### Environments  
-- `Local.postman_environment.json` - Local development environment (https://localhost:7052)
+- `InvoiceCore.Local.postman_environment.json` - "Invoice Core – Local" environment (https://localhost:7052)
 
 ## Test Coverage
 
@@ -42,7 +42,7 @@ Postman collections and environments for API workflow testing.
 
 2. **Import Environment**
    - Click "Import" 
-   - Select `Environments/Local.postman_environment.json`
+   - Select `Environments/InvoiceCore.Local.postman_environment.json`
    - Set as active environment
    - Set `auth_username` and `auth_password` to the API's `Auth:UserName` / `Auth:Password`
      (enter them in the **Current value** column only, so they stay local and are never exported or synced)
