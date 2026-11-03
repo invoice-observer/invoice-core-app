@@ -7,11 +7,14 @@ namespace DataLayer.Services
     {
         private readonly InvoiceDbContext _db;
         private readonly IMessagePublisherService _messagePublisher;
+        private readonly IMessageReadiness _messageReadiness;
 
-        public SqLiteInvoiceService(InvoiceDbContext db, IMessagePublisherService messagePublisher)
+        public SqLiteInvoiceService(InvoiceDbContext db, IMessagePublisherService messagePublisher,
+            IMessageReadiness messageReadiness)
         {
             _db = db;
             _messagePublisher = messagePublisher;
+            _messageReadiness = messageReadiness;
             _db.Database.EnsureCreated(); // Code First !
         }
 
@@ -28,6 +31,7 @@ namespace DataLayer.Services
 
         public async Task AddAsync(Invoice invoice, CancellationToken cancellationToken = default)
         {
+            EnsureMessagingReady();
             _db.Invoices.Add(invoice);
             await _db.SaveChangesAsync(cancellationToken);
             
@@ -36,6 +40,7 @@ namespace DataLayer.Services
 
         public async Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken = default)
         {
+            EnsureMessagingReady();
             _db.Invoices.Update(invoice);
             await _db.SaveChangesAsync(cancellationToken);
             
@@ -44,6 +49,7 @@ namespace DataLayer.Services
 
         public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
+            EnsureMessagingReady();
             var invoice = await _db.Invoices.Include(i => i.InvoiceLines)
                 .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
             if (invoice != null)
@@ -54,6 +60,12 @@ namespace DataLayer.Services
                 
                 await _messagePublisher.PublishInvoiceEventAsync("deleted", new { Id = id }, cancellationToken);
             }
+        }
+
+        private void EnsureMessagingReady()
+        {
+            if (!_messageReadiness.CanWriteInvoices)
+                throw new MessagingUnavailableException();
         }
     }
 }

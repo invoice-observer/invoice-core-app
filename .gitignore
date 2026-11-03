@@ -92,5 +92,5 @@ Thumbs.db
 
 Invoices.db*
 
-# Per-user ReSharper/Rider settings
-*.DotSettings.user
+# JetBrains Air session files
+.awb/

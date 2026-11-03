@@ -42,7 +42,15 @@ namespace InvoiceCoreApp.Pages.Invoices
         {
             if (!ModelState.IsValid)
                 return Page();
-            await service.AddAsync(Invoice, cancellationToken);
+            try
+            {
+                await service.AddAsync(Invoice, cancellationToken);
+            }
+            catch (MessagingUnavailableException exception)
+            {
+                ModelState.AddModelError(string.Empty, exception.Message);
+                return Page();
+            }
             return RedirectToPage("Index");
         }
     }
