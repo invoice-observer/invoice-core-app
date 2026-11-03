@@ -91,3 +91,6 @@ Thumbs.db
 **/wwwroot/lib/*
 
 Invoices.db*
+
+# JetBrains Air session files
+.awb/

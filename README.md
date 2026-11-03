@@ -1,23 +1,10 @@
-# Invoice Observer (and Invoice Core)
-
-## Overall System Architecture
-
-Invoice Observer consists of two applications, developed with a concept of independent microservices in mind:
-
-1. **Invoice Core (ASP.NET Core Application)**
-   - Authenticated endpoint for invoice submission
-   - SQLite persistence via Entity Framework
-   - RabbitMQ queue publisher for invoice events
-
-2. **Invoice Monitoring (.NET Invoice Monitoring CLI)**
-   - RabbitMQ queue consumer
-   - Message processing and display functionality
-   - Resides in a separate repository, [Invoice Monitoring](https://github.com/invoice-observer/invoice-monitoring-cli.git)
-
-## Invoice Core
+# Invoice Core
 
 ASP.NET Core MVP / API implementing a primitive invoice management with JWT authentication, simple Razor Pages UI,
 publishing events to RabbitMQ.
+
+Part of Invoice Observer. For the overall system architecture, see the
+[organization README](https://github.com/invoice-observer/.github/blob/main/profile/README.md).
 
 ### Key Features
 
