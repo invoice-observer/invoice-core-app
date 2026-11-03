@@ -21,10 +21,11 @@ public sealed class AuthSettings
         {
             UserName = Required(configuration, "Auth:UserName"),
             Password = Required(configuration, "Auth:Password"),
-            JwtKey = Required(configuration, "Jwt:Key")
+            JwtKey = Required(configuration, "Auth:JwtKey")
         };
+        // ReSharper disable once ConvertIfStatementToReturnStatement
         if (Encoding.UTF8.GetByteCount(settings.JwtKey) < MinJwtKeyBytes)
-            throw new InvalidOperationException($"Configuration value 'Jwt:Key' must be at least {MinJwtKeyBytes} bytes.");
+            throw new InvalidOperationException($"Configuration value 'Auth:JwtKey' must be at least {MinJwtKeyBytes} bytes.");
         return settings;
     }
 

@@ -14,6 +14,6 @@ public sealed class TestAuthSettings
     {
         builder.UseSetting("Auth:UserName", UserName);
         builder.UseSetting("Auth:Password", Password);
-        builder.UseSetting("Jwt:Key", JwtKey);
+        builder.UseSetting("Auth:JwtKey", JwtKey);
     }
 }

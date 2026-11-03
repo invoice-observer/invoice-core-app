@@ -45,7 +45,7 @@ else
     builder.Services.AddScoped(_ => new InvoiceWriteStatus());
 }
 
-// Fails startup when Auth:UserName, Auth:Password or Jwt:Key is missing.
+// Fails startup when Auth:UserName, Auth:Password or Auth:JwtKey is missing.
 var authSettings = AuthSettings.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(authSettings);
 builder.Services.AddAuthentication(options =>

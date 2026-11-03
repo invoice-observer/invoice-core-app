@@ -64,30 +64,30 @@ All invoice endpoints require valid JWT authentication.
 
 ## Configuration and Secrets
 
-No credentials are committed. The application **fails at startup** if `Auth:UserName`, `Auth:Password` or `Jwt:Key`
-is missing or empty, or if `Jwt:Key` is shorter than 32 bytes (the HMAC-SHA256 minimum).
+No credentials are committed. The application **fails at startup** if `Auth:UserName`, `Auth:Password` or `Auth:JwtKey`
+is missing or empty, or if `Auth:JwtKey` is shorter than 32 bytes (the HMAC-SHA256 minimum).
 
 | Key                     | Purpose                                         |
 |-------------------------|-------------------------------------------------|
 | `Auth:UserName`         | User name accepted by `POST /api/auth/login`    |
 | `Auth:Password`         | Password accepted by `POST /api/auth/login`     |
-| `Jwt:Key`               | Symmetric key that signs and validates JWTs     |
+| `Auth:JwtKey`           | Symmetric key that signs and validates JWTs     |
 | `RabbitMQ:UserPassword` | RabbitMQ broker password (see below)            |
 
 - Development (User Secrets, stored outside the repository):
   ```
   dotnet user-secrets set "Auth:UserName" "<user name>" --project Projects/InvoiceCoreApp
   dotnet user-secrets set "Auth:Password" "<password>" --project Projects/InvoiceCoreApp
-  dotnet user-secrets set "Jwt:Key" "<random key>" --project Projects/InvoiceCoreApp
+  dotnet user-secrets set "Auth:JwtKey" "<random key>" --project Projects/InvoiceCoreApp
   ```
   Generate a random key of at least 32 bytes, e.g. in PowerShell:
   ```
   [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
   ```
-- Production: environment variables `Auth__UserName`, `Auth__Password`, `Jwt__Key`
+- Production: environment variables `Auth__UserName`, `Auth__Password`, `Auth__JwtKey`
   (or a Key Vault / Kubernetes secret mapped to them).
 
-Changing `Jwt:Key` invalidates all previously issued tokens. Earlier revisions of this repository contained
+Changing `Auth:JwtKey` invalidates all previously issued tokens. Earlier revisions of this repository contained
 hardcoded credentials; they are compromised and must never be reused.
 
 ### RabbitMQ

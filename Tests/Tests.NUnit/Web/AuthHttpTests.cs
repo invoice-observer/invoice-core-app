@@ -28,7 +28,7 @@ public class AuthHttpTests
             builder.UseSetting("InvoiceService", "Mock");
             auth.Apply(builder);
             if (blankKey is not null) builder.UseSetting(blankKey, "");
-            if (jwtKey is not null) builder.UseSetting("Jwt:Key", jwtKey);
+            if (jwtKey is not null) builder.UseSetting("Auth:JwtKey", jwtKey);
             builder.ConfigureTestServices(services =>
             {
                 foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)
@@ -76,7 +76,7 @@ public class AuthHttpTests
 
     [TestCase("Auth:UserName")]
     [TestCase("Auth:Password")]
-    [TestCase("Jwt:Key")]
+    [TestCase("Auth:JwtKey")]
     public void MissingSettingFailsStartup(string key)
     {
         using var factory = new Factory(new TestAuthSettings(), blankKey: key);
@@ -89,6 +89,6 @@ public class AuthHttpTests
     {
         using var factory = new Factory(new TestAuthSettings(), jwtKey: new string('k', 31));
         var error = Assert.Throws<InvalidOperationException>(() => factory.Client());
-        Assert.That(error!.Message, Does.Contain("'Jwt:Key'").And.Contain("32 bytes"));
+        Assert.That(error!.Message, Does.Contain("'Auth:JwtKey'").And.Contain("32 bytes"));
     }
 }
