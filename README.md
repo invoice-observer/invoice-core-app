@@ -58,11 +58,39 @@ All invoice endpoints require valid JWT authentication.
 
 1. Clone the repository
 2. [Re]configure connection strings in appsettings.json
-3. Provide the RabbitMQ password as a secret (see below)
+3. Provide the login credentials, the JWT signing key and the RabbitMQ password as secrets (see below)
 4. Start the API service
 5. Start the console processing service
 
-## RabbitMQ Configuration and Secrets
+## Configuration and Secrets
+
+No credentials are committed. The application **fails at startup** if `Auth:UserName`, `Auth:Password` or `Jwt:Key`
+is missing or empty, or if `Jwt:Key` is shorter than 32 bytes (the HMAC-SHA256 minimum).
+
+| Key                     | Purpose                                         |
+|-------------------------|-------------------------------------------------|
+| `Auth:UserName`         | User name accepted by `POST /api/auth/login`    |
+| `Auth:Password`         | Password accepted by `POST /api/auth/login`     |
+| `Jwt:Key`               | Symmetric key that signs and validates JWTs     |
+| `RabbitMQ:UserPassword` | RabbitMQ broker password (see below)            |
+
+- Development (User Secrets, stored outside the repository):
+  ```
+  dotnet user-secrets set "Auth:UserName" "<user name>" --project Projects/InvoiceCoreApp
+  dotnet user-secrets set "Auth:Password" "<password>" --project Projects/InvoiceCoreApp
+  dotnet user-secrets set "Jwt:Key" "<random key>" --project Projects/InvoiceCoreApp
+  ```
+  Generate a random key of at least 32 bytes, e.g. in PowerShell:
+  ```
+  [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+  ```
+- Production: environment variables `Auth__UserName`, `Auth__Password`, `Jwt__Key`
+  (or a Key Vault / Kubernetes secret mapped to them).
+
+Changing `Jwt:Key` invalidates all previously issued tokens. Earlier revisions of this repository contained
+hardcoded credentials; they are compromised and must never be reused.
+
+### RabbitMQ
 
 The `RabbitMQ` section of `appsettings.json` holds only non-secret values: the broker URI **without credentials**
 (`amqps://host/vhost`), `UserName`, exchange, queue and routing key. The `UserPassword` is never committed;
