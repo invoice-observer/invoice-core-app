@@ -32,6 +32,7 @@ public class InvoiceHttpTests
         {
             builder.UseEnvironment("Testing");
             builder.UseSetting("InvoiceService", "Mock");
+            new TestAuthSettings().Apply(builder);
             builder.ConfigureTestServices(services =>
             {
                 // Never start messaging or resolve the application's database in HTTP tests.

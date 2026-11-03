@@ -1,4 +1,3 @@
-using System.Text;
 using DataLayer;
 using DataLayer.Services;
 using InvoiceCoreApp.Services;
@@ -46,7 +45,9 @@ else
     builder.Services.AddScoped(_ => new InvoiceWriteStatus());
 }
 
-const string key = "super_secret_jwt_key_12345_super_secret_key";
+// Fails startup when Auth:UserName, Auth:Password or Auth:JwtKey is missing.
+var authSettings = AuthSettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(authSettings);
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = CookieAuthenticationDefaults
@@ -72,8 +73,7 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey =
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+            IssuerSigningKey = authSettings.SigningKey
         };
     });
 
