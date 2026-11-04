@@ -63,7 +63,7 @@ All invoice endpoints require valid JWT authentication.
    ```
 2. Start Docker:
    ```
-   docker compose -f demo/compose.yaml --env-file demo/.env up -d
+   docker compose -f demo/compose.yaml --env-file demo/.env up -d --wait
    ```
 3. Set the User Secrets (see [Configuration and Secrets](#configuration-and-secrets)).
 4. Run the app in a separate terminal:
@@ -74,8 +74,14 @@ All invoice endpoints require valid JWT authentication.
    ```
    dotnet test Tests/Tests.NUnit/Tests.NUnit.csproj
    ```
-6. Run the Postman collection:
+6. Trust the development certificate (once per machine):
    ```
+   dotnet dev-certs https --trust
+   ```
+7. Run the Postman collection. Newman runs on Node.js, which does not trust the ASP.NET Core development certificate
+   unless it reads the Windows certificate store (Node 22.15+ or 23.8+):
+   ```
+   $env:NODE_OPTIONS = "--use-system-ca"
    newman run Tests/Tests.Postman/Collections/InvoiceAPI.postman_collection.json -e Tests/Tests.Postman/Environments/InvoiceCore.Local.postman_environment.json --env-var auth_username=<user> --env-var auth_password=<password> --insecure
    ```
 
