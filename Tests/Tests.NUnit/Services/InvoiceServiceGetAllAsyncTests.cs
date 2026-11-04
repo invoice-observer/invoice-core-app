@@ -92,7 +92,7 @@ namespace Tests.NUnit.Services
         public async Task SqLiteService_EmptyDatabase_ReturnsEmptyList()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
 
             // Act
@@ -107,7 +107,7 @@ namespace Tests.NUnit.Services
         public async Task SqLiteService_AfterAddingInvoices_ReturnsAllInvoices()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice1 = new Invoice
@@ -143,7 +143,7 @@ namespace Tests.NUnit.Services
         public async Task SqLiteService_IncludesInvoiceLines()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice = new Invoice

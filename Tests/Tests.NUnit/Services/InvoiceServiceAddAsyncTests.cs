@@ -50,7 +50,7 @@ namespace Tests.NUnit.Services
         public async Task SqLiteService_PersistsInvoiceToDatabase()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice = new Invoice

@@ -10,7 +10,7 @@ public static class InvoiceServiceModeExtensions
 {
     extension(InvoiceServiceMode)
     {
-        // Accepts only the exact names (any case); rejects numbers, lists, whitespace and SQLite.
+        // Accepts only the exact enum names (any case); rejects numbers, lists, and whitespace.
         public static InvoiceServiceMode Parse(string? value) =>
             Enum.GetValues<InvoiceServiceMode>()
                 .Cast<InvoiceServiceMode?>()
