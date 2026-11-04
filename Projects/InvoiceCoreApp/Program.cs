@@ -20,7 +20,7 @@ if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultur
 {
     builder.Services.AddDbContext<InvoiceDbContext>(options =>
         options.UseSqlite(builder.Configuration.GetConnectionString("InvoiceDb")));
-    builder.Services.AddScoped<IInvoiceService, SqLiteInvoiceService>();
+    builder.Services.AddScoped<IInvoiceService, EfInvoiceService>();
 
     // Configure RabbitMQ
     builder.Services.Configure<RmqSettings>(builder.Configuration.GetSection("RabbitMQ"));
