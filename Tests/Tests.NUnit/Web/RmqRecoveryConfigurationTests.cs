@@ -22,7 +22,8 @@ public class RmqRecoveryConfigurationTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
-            builder.UseSetting("InvoiceService", "SQLite");
+            builder.UseSetting("InvoiceService", "SqlServer");
+            TestDatabaseSettings.Apply(builder);
             new TestAuthSettings().Apply(builder);
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>

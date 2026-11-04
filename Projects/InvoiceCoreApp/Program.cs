@@ -15,11 +15,13 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
 
-var invoiceServiceType = builder.Configuration["InvoiceService"];
-if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultureIgnoreCase))
+// Fails startup when InvoiceService is missing or unknown.
+var invoiceServiceMode = InvoiceServiceMode.Parse(builder.Configuration["InvoiceService"]);
+if (invoiceServiceMode == InvoiceServiceMode.SqlServer)
 {
-    builder.Services.AddDbContext<InvoiceDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("InvoiceDb")));
+    // Built here, not in the options callback, so missing values fail startup.
+    var connectionString = DatabaseSettings.BuildConnectionString(builder.Configuration);
+    builder.Services.AddDbContext<InvoiceDbContext>(options => options.UseSqlServer(connectionString));
     builder.Services.AddScoped<IInvoiceService, EfInvoiceService>();
 
     // Configure RabbitMQ

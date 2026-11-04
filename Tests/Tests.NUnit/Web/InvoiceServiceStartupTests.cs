@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using InvoiceCoreApp.Controllers;
 using InvoiceCoreApp.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -14,9 +13,6 @@ namespace Tests.NUnit.Web;
 [TestFixture]
 public class InvoiceServiceStartupTests
 {
-    private const string ConnectionStringKey = "ConnectionStrings:InvoiceDb";
-    private const string PasswordKey = "Database:Password";
-
     private sealed class Factory(string mode, string? blankKey = null) : WebApplicationFactory<InvoicesApiController>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -24,9 +20,8 @@ public class InvoiceServiceStartupTests
             builder.UseEnvironment("Testing");
             builder.UseSetting("InvoiceService", mode);
             new TestAuthSettings().Apply(builder);
-            // Both values are valid by default, so a failure can only come from the blanked key.
-            builder.UseSetting(ConnectionStringKey, "Server=localhost,1433;Database=InvoiceDb;User Id=sa;TrustServerCertificate=True");
-            builder.UseSetting(PasswordKey, Convert.ToHexString(RandomNumberGenerator.GetBytes(8)));
+            // Both values start valid, so a failure can only come from the blanked key.
+            TestDatabaseSettings.Apply(builder);
             if (blankKey is not null) builder.UseSetting(blankKey, "");
             builder.ConfigureTestServices(services =>
             {
@@ -37,8 +32,8 @@ public class InvoiceServiceStartupTests
         }
     }
 
-    [TestCase(ConnectionStringKey)]
-    [TestCase(PasswordKey)]
+    [TestCase(TestDatabaseSettings.ConnectionStringKey)]
+    [TestCase(TestDatabaseSettings.PasswordKey)]
     public void SqlServer_MissingSettingFailsStartup(string key)
     {
         using var factory = new Factory("SqlServer", blankKey: key);
