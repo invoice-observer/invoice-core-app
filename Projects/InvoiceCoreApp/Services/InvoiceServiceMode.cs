@@ -10,7 +10,13 @@ public static class InvoiceServiceModeExtensions
 {
     extension(InvoiceServiceMode)
     {
-        // Stub: implementation pending.
-        public static InvoiceServiceMode Parse(string? value) => throw new NotImplementedException();
+        // Accepts only the exact names (any case); rejects numbers, lists, whitespace and SQLite.
+        public static InvoiceServiceMode Parse(string? value) =>
+            Enum.GetValues<InvoiceServiceMode>()
+                .Cast<InvoiceServiceMode?>()
+                .FirstOrDefault(mode => string.Equals(mode.ToString(), value, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException(
+                $"Invalid configuration value '{value}' for 'InvoiceService'. " +
+                $"Allowed values: {string.Join(", ", Enum.GetNames<InvoiceServiceMode>())}.");
     }
 }
