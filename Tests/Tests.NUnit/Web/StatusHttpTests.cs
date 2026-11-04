@@ -22,6 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
 using RabbitMQ.Client;
+using Tests.NUnit.Infrastructure;
 
 namespace Tests.NUnit.Web;
 
@@ -38,7 +39,9 @@ public class StatusHttpTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
-            builder.UseSetting("InvoiceService", state.HasValue ? "SQLite" : "Mock");
+            builder.UseSetting("InvoiceService", state.HasValue ? "SqlServer" : "Mock");
+            TestDatabaseSettings.Apply(builder);
+            new TestAuthSettings().Apply(builder);
             builder.ConfigureTestServices(services =>
             {
                 services.PostConfigure<JwtBearerOptions>("Bearer", options =>

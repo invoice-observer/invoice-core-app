@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataLayer.Services
 {
-    public class SqLiteInvoiceService : IInvoiceService
+    public class EfInvoiceService : IInvoiceService
     {
         private readonly InvoiceDbContext _db;
         private readonly IMessagePublisherService _messagePublisher;
         private readonly IMessageReadiness _messageReadiness;
 
-        public SqLiteInvoiceService(InvoiceDbContext db, IMessagePublisherService messagePublisher,
+        public EfInvoiceService(InvoiceDbContext db, IMessagePublisherService messagePublisher,
             IMessageReadiness messageReadiness)
         {
             _db = db;

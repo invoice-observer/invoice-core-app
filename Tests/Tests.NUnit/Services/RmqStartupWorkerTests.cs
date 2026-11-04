@@ -49,7 +49,7 @@ public class RmqStartupWorkerTests
     {
         await using var fixture = new SqliteInvoiceFixture();
         await fixture.SeedAsync();
-        var service = new SqLiteInvoiceService(fixture.Db, _publisher, _publisher);
+        var service = new EfInvoiceService(fixture.Db, _publisher, _publisher);
         var delays = new ControlledDelays();
         using var worker = new RmqStartupWorker(_publisher, NullLogger<RmqStartupWorker>.Instance, delays.WaitAsync);
         try

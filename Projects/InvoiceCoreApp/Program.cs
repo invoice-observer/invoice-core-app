@@ -1,4 +1,3 @@
-using System.Text;
 using DataLayer;
 using DataLayer.Services;
 using InvoiceCoreApp.Services;
@@ -16,12 +15,14 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
 
-var invoiceServiceType = builder.Configuration["InvoiceService"];
-if (string.Equals(invoiceServiceType, "SQLite", StringComparison.InvariantCultureIgnoreCase))
+// Fails startup when InvoiceService is missing or unknown.
+var invoiceServiceMode = InvoiceServiceMode.Parse(builder.Configuration["InvoiceService"]);
+if (invoiceServiceMode == InvoiceServiceMode.SqlServer)
 {
-    builder.Services.AddDbContext<InvoiceDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("InvoiceDb")));
-    builder.Services.AddScoped<IInvoiceService, SqLiteInvoiceService>();
+    // Built here, not in the options callback, so missing values fail startup.
+    var connectionString = DatabaseSettings.BuildConnectionString(builder.Configuration);
+    builder.Services.AddDbContext<InvoiceDbContext>(options => options.UseSqlServer(connectionString));
+    builder.Services.AddScoped<IInvoiceService, EfInvoiceService>();
 
     // Configure RabbitMQ
     builder.Services.Configure<RmqSettings>(builder.Configuration.GetSection("RabbitMQ"));
@@ -46,7 +47,9 @@ else
     builder.Services.AddScoped(_ => new InvoiceWriteStatus());
 }
 
-const string key = "super_secret_jwt_key_12345_super_secret_key";
+// Fails startup when Auth:UserName, Auth:Password or Auth:JwtKey is missing.
+var authSettings = AuthSettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(authSettings);
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = CookieAuthenticationDefaults
@@ -72,8 +75,7 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey =
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+            IssuerSigningKey = authSettings.SigningKey
         };
     });
 

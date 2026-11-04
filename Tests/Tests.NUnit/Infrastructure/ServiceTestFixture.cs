@@ -22,7 +22,7 @@ namespace Tests.NUnit.Infrastructure
         }
 
         /// <summary>
-        /// Creates a service provider configured with SqLiteInvoiceService using in-memory database
+        /// Creates a service provider configured with EfInvoiceService using in-memory database
         /// </summary>
         public static ServiceProvider CreateSqLiteServiceProvider()
         {
@@ -38,7 +38,7 @@ namespace Tests.NUnit.Infrastructure
 
             // services.AddDbContext<InvoiceDbContext>(options =>
             //     options.UseSqlite("Data Source=Invoices.db"));
-            // services.AddScoped<IInvoiceService, SqLiteInvoiceService>();
+            // services.AddScoped<IInvoiceService, EfInvoiceService>();
 
             // Use in-memory database:
             services.AddDbContext<InvoiceDbContext>(options =>
@@ -46,7 +46,7 @@ namespace Tests.NUnit.Infrastructure
 
 
 
-            services.AddScoped<IInvoiceService, SqLiteInvoiceService>();
+            services.AddScoped<IInvoiceService, EfInvoiceService>();
             
             return services.BuildServiceProvider();
         }

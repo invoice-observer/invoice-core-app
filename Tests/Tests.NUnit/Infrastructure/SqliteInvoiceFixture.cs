@@ -18,7 +18,7 @@ public sealed class SqliteInvoiceFixture : IAsyncDisposable
     public Mock<IMessagePublisherService> Publisher { get; } = new();
     public Mock<IMessageReadiness> Readiness { get; } = new();
     public MessageReadinessState State { get; set; } = MessageReadinessState.Ready;
-    public SqLiteInvoiceService Service { get; }
+    public EfInvoiceService Service { get; }
     public CommandCounter Commands { get; } = new();
 
     public SqliteInvoiceFixture()
@@ -30,7 +30,7 @@ public sealed class SqliteInvoiceFixture : IAsyncDisposable
         Readiness.SetupGet(r => r.CanWriteInvoices).Returns(() => State == MessageReadinessState.Ready);
         _services = new ServiceCollection().AddSingleton(Db).AddSingleton(Publisher.Object)
             .AddSingleton(Readiness.Object).BuildServiceProvider();
-        Service = ActivatorUtilities.CreateInstance<SqLiteInvoiceService>(_services);
+        Service = ActivatorUtilities.CreateInstance<EfInvoiceService>(_services);
     }
 
     public InvoiceDbContext CreateContext() => new(new DbContextOptionsBuilder<InvoiceDbContext>()

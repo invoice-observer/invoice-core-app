@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using InvoiceCoreApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,15 +8,14 @@ namespace InvoiceCoreApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(AuthSettings authSettings) : ControllerBase
     {
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
             // ReSharper disable once InvertIf
-            if (request is { Username: "Admin", Password: "edanziger" })
+            if (authSettings.Matches(request.Username, request.Password))
             {
-                const string key = "super_secret_jwt_key_12345_super_secret_key";
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
@@ -24,7 +23,7 @@ namespace InvoiceCoreApp.Controllers
                         new Claim(ClaimTypes.Name, request.Username), new Claim(ClaimTypes.Role, "Admin")
                     ]),
                     Expires = DateTime.UtcNow.AddHours(1),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    SigningCredentials = new SigningCredentials(authSettings.SigningKey,
                         SecurityAlgorithms.HmacSha256Signature)
                 };
                 var token = tokenHandler.CreateToken(tokenDescriptor);

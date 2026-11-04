@@ -79,7 +79,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"edanziger\"\n}"
+                            "raw": "{\n  \"username\": \"{{auth_username}}\",\n  \"password\": \"{{auth_password}}\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/api/auth/login",
@@ -361,7 +361,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"edanziger\"\n}"
+                            "raw": "{\n  \"username\": \"{{auth_username}}\",\n  \"password\": \"{{auth_password}}\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/api/auth/login",
