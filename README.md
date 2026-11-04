@@ -56,22 +56,45 @@ All invoice endpoints require valid JWT authentication.
 
 ## Start in Development Environment
 
-1. Clone the repository
-2. [Re]configure connection strings in appsettings.json
-3. Provide the login credentials, the JWT signing key and the RabbitMQ password as secrets (see below)
-4. Start the API service
-5. Start the console processing service
+1. Copy `demo/.env.example` to `demo/.env` if it does not exist yet, then replace the placeholders in `demo/.env`
+   (`RABBITMQ_USER` must be `demo`, the `RabbitMQ:UserName` in `appsettings.Development.json`):
+   ```
+   if (-not (Test-Path demo/.env)) { Copy-Item demo/.env.example demo/.env }
+   ```
+2. Start Docker:
+   ```
+   docker compose -f demo/compose.yaml --env-file demo/.env up -d
+   ```
+3. Set the User Secrets (see [Configuration and Secrets](#configuration-and-secrets)).
+4. Run the app in a separate terminal:
+   ```
+   dotnet run --project Projects/InvoiceCoreApp --launch-profile https
+   ```
+5. Run the unit tests:
+   ```
+   dotnet test Tests/Tests.NUnit/Tests.NUnit.csproj
+   ```
+6. Run the Postman collection:
+   ```
+   newman run Tests/Tests.Postman/Collections/InvoiceAPI.postman_collection.json -e Tests/Tests.Postman/Environments/InvoiceCore.Local.postman_environment.json --env-var auth_username=<user> --env-var auth_password=<password> --insecure
+   ```
+
+The SQL Server data lives in a named Docker volume and is deleted only by `docker compose down -v`.
+The passwords in `demo/.env` take effect only when a volume is first created, so they must match the User Secrets.
 
 ## Configuration and Secrets
 
 No credentials are committed. The application **fails at startup** if `Auth:UserName`, `Auth:Password` or `Auth:JwtKey`
 is missing or empty, or if `Auth:JwtKey` is shorter than 32 bytes (the HMAC-SHA256 minimum).
+With `InvoiceService` set to `SqlServer`, it also fails if `ConnectionStrings:InvoiceDb` or `Database:Password`
+is missing or empty.
 
 | Key                     | Purpose                                         |
 |-------------------------|-------------------------------------------------|
 | `Auth:UserName`         | User name accepted by `POST /api/auth/login`    |
 | `Auth:Password`         | Password accepted by `POST /api/auth/login`     |
 | `Auth:JwtKey`           | Symmetric key that signs and validates JWTs     |
+| `Database:Password`     | SQL Server password                             |
 | `RabbitMQ:UserPassword` | RabbitMQ broker password (see below)            |
 
 - Development (User Secrets, stored outside the repository):
@@ -79,13 +102,16 @@ is missing or empty, or if `Auth:JwtKey` is shorter than 32 bytes (the HMAC-SHA2
   dotnet user-secrets set "Auth:UserName" "<user name>" --project Projects/InvoiceCoreApp
   dotnet user-secrets set "Auth:Password" "<password>" --project Projects/InvoiceCoreApp
   dotnet user-secrets set "Auth:JwtKey" "<random key>" --project Projects/InvoiceCoreApp
+  dotnet user-secrets set "Database:Password" "<password>" --project Projects/InvoiceCoreApp
   ```
   Generate a random key of at least 32 bytes, e.g. in PowerShell:
   ```
   [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
   ```
-- Production: environment variables `Auth__UserName`, `Auth__Password`, `Auth__JwtKey`
+- Production: environment variables `Auth__UserName`, `Auth__Password`, `Auth__JwtKey`, `Database__Password`
   (or a Key Vault / Kubernetes secret mapped to them).
+- `ConnectionStrings:InvoiceDb` is set only in `appsettings.Development.json`. Outside Development, supply it as the
+  environment variable `ConnectionStrings__InvoiceDb`, without a password; `Database:Password` is added at startup.
 
 Changing `Auth:JwtKey` invalidates all previously issued tokens. Earlier revisions of this repository contained
 hardcoded credentials; they are compromised and must never be reused.
