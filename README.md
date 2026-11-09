@@ -88,6 +88,56 @@ All invoice endpoints require valid JWT authentication.
 The SQL Server data lives in a named Docker volume and is deleted only by `docker compose down -v`.
 The passwords in `demo/.env` take effect only when a volume is first created, so they must match the User Secrets.
 
+## Performance Lab
+
+Measures the paged endpoint and the `(Supplier, DueDate)` index against a seeded database.
+Baseline numbers without the index are in [demo/result-interpration.md](demo/result-interpration.md).
+
+1. Start SQL Server and RabbitMQ as in [Start in Development Environment](#start-in-development-environment)
+   (steps 1-3).
+2. Run the app once, so it creates the tables, then stop it:
+   ```
+   dotnet run --project Projects/InvoiceCoreApp --launch-profile https
+   ```
+3. Seed the database (the scripts use `sqlcmd` with the `sa` login; add `-P <password>` or set `SQLCMDPASSWORD`):
+   ```
+   sqlcmd -S 127.0.0.1,1433 -U sa -C -b -v InvoiceCount=500000 -i demo/seed.sql
+   ```
+4. Run the app again and measure:
+   ```
+   ./demo/measure.ps1 -BaseUrl https://localhost:7052 -UserName <user> -Password <password> -Endpoint "/api/invoices/page?supplier=Supplier 042&size=50" -Count 20
+   ```
+5. Switch the index and measure again:
+   ```
+   sqlcmd -S 127.0.0.1,1433 -U sa -C -b -v Action=create -i demo/index.sql
+   sqlcmd -S 127.0.0.1,1433 -U sa -C -b -v Action=drop -i demo/index.sql
+   ```
+   Run `demo/queries.sql` in SSMS for page reads and the execution plans.
+
+### Results
+
+| Case                                  | Without index | With index |
+|---------------------------------------|---------------|------------|
+| Page reads, supplier and 30-day range | 6,787 [^1]    | _TBD_      |
+| `GET /api/invoices/page`, median      | _TBD_ ms      | _TBD_ ms   |
+| `GET /api/invoices/page`, min / max   | _TBD_ / _TBD_ ms | _TBD_ / _TBD_ ms |
+| `GET /api/invoices`, median           | 11.0 s [^2]   | _TBD_ ms   |
+
+[^1]: Baseline from `demo/queries.sql` query 2 (with `Include`), not from the paged endpoint.
+[^2]: Query elapsed time in SSMS (1,499,961 rows), not an endpoint median.
+
+Execution plans:
+
+![Execution plan without index](docs/plan-without-index.png)
+
+![Execution plan with index](docs/plan-with-index.png)
+
+### Limits
+
+All numbers come from one local machine, with SQL Server in Docker and the client on the same host. Each case was
+measured in a single run set of 20 calls after one warm-up call. Results will differ on other hardware, data sizes
+and cache states; compare page reads rather than milliseconds.
+
 ## Configuration and Secrets
 
 No credentials are committed. The application **fails at startup** if `Auth:UserName`, `Auth:Password` or `Auth:JwtKey`
