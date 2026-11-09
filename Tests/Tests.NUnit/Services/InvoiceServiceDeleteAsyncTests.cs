@@ -20,6 +20,7 @@ namespace Tests.NUnit.Services
             await connection.OpenAsync();
             var options = new DbContextOptionsBuilder<InvoiceDbContext>().UseSqlite(connection).Options;
             await using var db = new InvoiceDbContext(options);
+            await db.Database.EnsureCreatedAsync();
             var publisher = new Mock<IMessagePublisherService>();
             var service = new EfInvoiceService(db, publisher.Object, Mock.Of<IMessageReadiness>(r => r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
             var invoice = new Invoice
@@ -61,6 +62,7 @@ namespace Tests.NUnit.Services
             await connection.OpenAsync();
             var options = new DbContextOptionsBuilder<InvoiceDbContext>().UseSqlite(connection).Options;
             await using var db = new InvoiceDbContext(options);
+            await db.Database.EnsureCreatedAsync();
             var publisher = new Mock<IMessagePublisherService>();
             var service = new EfInvoiceService(db, publisher.Object, Mock.Of<IMessageReadiness>(r => r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
 

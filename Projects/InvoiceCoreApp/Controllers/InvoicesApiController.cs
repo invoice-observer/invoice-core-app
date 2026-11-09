@@ -15,6 +15,16 @@ namespace InvoiceCoreApp.Controllers
         public async Task<ActionResult<List<Invoice>>> GetAll(CancellationToken cancellationToken)
             => Ok(await service.GetAllAsync(cancellationToken));
 
+        private const int MaxPageSize = 200;
+
+        [HttpGet("page")]
+        public async Task<ActionResult<List<InvoiceSummaryDto>>> GetPage(int? afterId, string? supplier,
+            DateTime? dueFrom, DateTime? dueTo, CancellationToken cancellationToken, int size = 50)
+        {
+            if (size is < 1 or > MaxPageSize) return BadRequest($"size must be between 1 and {MaxPageSize}.");
+            return Ok(await service.GetPageAsync(afterId, size, supplier, dueFrom, dueTo, cancellationToken));
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Invoice>> Get(int id, CancellationToken cancellationToken)
         {

@@ -89,6 +89,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (invoiceServiceMode == InvoiceServiceMode.SqlServer)
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<InvoiceDbContext>().Database.EnsureCreated(); // Code First !
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

@@ -44,6 +44,7 @@ public class StatusHttpTests
             new TestAuthSettings().Apply(builder);
             builder.ConfigureTestServices(services =>
             {
+                TestDatabaseSettings.UseInMemoryDatabase(services);
                 services.PostConfigure<JwtBearerOptions>("Bearer", options =>
                     options.TokenValidationParameters.IssuerSigningKey = _testKey);
                 foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)

@@ -24,7 +24,7 @@ namespace Tests.NUnit.Infrastructure
         /// <summary>
         /// Creates a service provider configured with EfInvoiceService using in-memory database
         /// </summary>
-        public static ServiceProvider CreateSqLiteServiceProvider()
+        public static ServiceProvider CreateInMemoryServiceProvider()
         {
             var services = new ServiceCollection();
 
@@ -35,10 +35,6 @@ namespace Tests.NUnit.Infrastructure
             services.AddSingleton(mockMessagePublisher.Object);
             services.AddSingleton(Mock.Of<IMessageReadiness>(r =>
                 r.State == MessageReadinessState.Ready && r.CanWriteInvoices));
-
-            // services.AddDbContext<InvoiceDbContext>(options =>
-            //     options.UseSqlite("Data Source=Invoices.db"));
-            // services.AddScoped<IInvoiceService, EfInvoiceService>();
 
             // Use in-memory database:
             services.AddDbContext<InvoiceDbContext>(options =>

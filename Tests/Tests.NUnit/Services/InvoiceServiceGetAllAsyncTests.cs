@@ -86,13 +86,13 @@ namespace Tests.NUnit.Services
 
         #endregion
 
-        #region SQLite Implementation Tests
+        #region In-Memory Implementation Tests
 
         [Test]
-        public async Task SqLiteService_EmptyDatabase_ReturnsEmptyList()
+        public async Task InMemoryService_EmptyDatabase_ReturnsEmptyList()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
 
             // Act
@@ -104,26 +104,26 @@ namespace Tests.NUnit.Services
         }
 
         [Test]
-        public async Task SqLiteService_AfterAddingInvoices_ReturnsAllInvoices()
+        public async Task InMemoryService_AfterAddingInvoices_ReturnsAllInvoices()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice1 = new Invoice
             {
-                Description = "SQLite Test Invoice 1",
+                Description = "In-Memory Test Invoice 1",
                 DueDate = DateTime.Today.AddDays(5),
-                Supplier = "SQLite Supplier 1",
-                InvoiceLines = [new InvoiceLine { Description = "SQLite Item 1", Price = 150.0, Quantity = 2 }]
+                Supplier = "In-Memory Supplier 1",
+                InvoiceLines = [new InvoiceLine { Description = "In-Memory Item 1", Price = 150.0, Quantity = 2 }]
             };
             
             var invoice2 = new Invoice
             {
-                Description = "SQLite Test Invoice 2",
+                Description = "In-Memory Test Invoice 2",
                 DueDate = DateTime.Today.AddDays(10),
-                Supplier = "SQLite Supplier 2",
-                InvoiceLines = [new InvoiceLine { Description = "SQLite Item 2", Price = 200.0, Quantity = 1 }]
+                Supplier = "In-Memory Supplier 2",
+                InvoiceLines = [new InvoiceLine { Description = "In-Memory Item 2", Price = 200.0, Quantity = 1 }]
             };
 
             // Act
@@ -133,17 +133,17 @@ namespace Tests.NUnit.Services
 
             // Assert
             Assert.That(result, Has.Count.EqualTo(2));
-            Assert.That(result.All(i => i.Id > 0), Is.True); // SQLite assigns IDs
+            Assert.That(result.All(i => i.Id > 0), Is.True); // EF assigns database ID
             Assert.That(result.All(i => i.InvoiceLines.Count > 0), Is.True); // Include related data
-            Assert.That(result.Any(i => i.Description == "SQLite Test Invoice 1"), Is.True);
-            Assert.That(result.Any(i => i.Description == "SQLite Test Invoice 2"), Is.True);
+            Assert.That(result.Any(i => i.Description == "In-Memory Test Invoice 1"), Is.True);
+            Assert.That(result.Any(i => i.Description == "In-Memory Test Invoice 2"), Is.True);
         }
 
         [Test]
-        public async Task SqLiteService_IncludesInvoiceLines()
+        public async Task InMemoryService_IncludesInvoiceLines()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice = new Invoice

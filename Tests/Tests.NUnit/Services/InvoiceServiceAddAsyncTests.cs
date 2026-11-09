@@ -44,21 +44,21 @@ namespace Tests.NUnit.Services
 
         #endregion
 
-        #region SQLite Implementation Tests
+        #region In-Memory Implementation Tests
 
         [Test]
-        public async Task SqLiteService_PersistsInvoiceToDatabase()
+        public async Task InMemoryService_PersistsInvoiceToDatabase()
         {
             // Arrange
-            await using var serviceProvider = ServiceTestFixture.CreateSqLiteServiceProvider();
+            await using var serviceProvider = ServiceTestFixture.CreateInMemoryServiceProvider();
             var invoiceService = serviceProvider.GetRequiredService<IInvoiceService>();
             
             var invoice = new Invoice
             {
-                Description = "SQLite Persistence Test",
+                Description = "In-Memory Persistence Test",
                 DueDate = DateTime.Today.AddDays(25),
-                Supplier = "SQLite Test Supplier",
-                InvoiceLines = [new InvoiceLine { Description = "SQLite Item", Price = 199.99, Quantity = 1 }]
+                Supplier = "In-Memory Test Supplier",
+                InvoiceLines = [new InvoiceLine { Description = "In-Memory Item", Price = 199.99, Quantity = 1 }]
             };
 
             // Act
@@ -70,8 +70,8 @@ namespace Tests.NUnit.Services
             Assert.That(allInvoices, Has.Count.EqualTo(1));
             
             var persistedInvoice = allInvoices[0];
-            Assert.That(persistedInvoice.Description, Is.EqualTo("SQLite Persistence Test"));
-            Assert.That(persistedInvoice.Supplier, Is.EqualTo("SQLite Test Supplier"));
+            Assert.That(persistedInvoice.Description, Is.EqualTo("In-Memory Persistence Test"));
+            Assert.That(persistedInvoice.Supplier, Is.EqualTo("In-Memory Test Supplier"));
             Assert.That(persistedInvoice.DueDate.Date, Is.EqualTo(DateTime.Today.AddDays(25)));
             Assert.That(persistedInvoice.InvoiceLines, Has.Count.EqualTo(1));
         }
