@@ -91,7 +91,7 @@ The passwords in `demo/.env` take effect only when a volume is first created, so
 ## Performance Lab
 
 Measures the paged endpoint and the `(Supplier, DueDate)` index against a seeded database.
-Baseline numbers without the index are in [demo/result-interpration.md](demo/result-interpration.md).
+Baseline numbers without the index are in [demo/result-interpretation.md](demo/result-interpretation.md).
 
 1. Start SQL Server and RabbitMQ as in [Start in Development Environment](#start-in-development-environment)
    (steps 1-3).
@@ -105,11 +105,14 @@ Baseline numbers without the index are in [demo/result-interpration.md](demo/res
    ```
 4. Run the app again and measure:
    ```
-   ./demo/measure.ps1 -BaseUrl https://localhost:7052 -UserName <user> -Password <password> -Endpoint "/api/invoices/page?supplier=Supplier 042&size=50" -Count 20
+   ./demo/measure.ps1 -BaseUrl https://localhost:7052 -UserName <user> -Password <password> -Endpoint "/api/invoices/page?supplier=Supplier 042&dueFrom=2026-11-10&dueTo=2026-12-10&size=50" -Count 20
    ```
-5. Switch the index and measure again:
+5. Create the index, then repeat step 4:
    ```
    sqlcmd -S 127.0.0.1,1433 -U sa -C -b -v Action=create -i demo/index.sql
+   ```
+   To return to the state without the index, drop it:
+   ```
    sqlcmd -S 127.0.0.1,1433 -U sa -C -b -v Action=drop -i demo/index.sql
    ```
    Run `demo/queries.sql` in SSMS for page reads and the execution plans.
@@ -119,13 +122,14 @@ Baseline numbers without the index are in [demo/result-interpration.md](demo/res
 | Case                                  | Without index | With index |
 |---------------------------------------|---------------|------------|
 | Page reads, supplier and 30-day range | 6,787 [^1]    | 786 [^3]   |
-| `GET /api/invoices/page`, median      | 11.3 ms       | 12.5 ms    |
-| `GET /api/invoices/page`, min / max   | 9.8 / 15.7 ms | 9.0 / 19.1 ms |
-| `GET /api/invoices`, median           | 15.6 s, 176 MB | 15.4 s, 176 MB |
+| `GET /api/invoices/page`, median [^4] | 93.6 ms       | 103.5 ms   |
+| `GET /api/invoices/page`, min / max   | 86.9 / 170.1 ms | 83.5 / 129.9 ms |
+| `GET /api/invoices`, median [^2]      | 15.6 s, 176 MB | 15.4 s, 176 MB |
 
 [^1]: Baseline from `demo/queries.sql` query 2 (with `Include`), not from the paged endpoint.
-[^2]: Earlier baseline: query elapsed time in SSMS (1,499,961 rows), not an endpoint median. The endpoint rows were measured with 3 calls.
+[^2]: Measured with 3 calls after one warm-up call, not 20.
 [^3]: Invoices 161 reads (index seek) + InvoiceLines 625 reads.
+[^4]: With the 30-day window (`dueFrom`/`dueTo`) of step 4. The endpoint's keyset query (`Id > afterId`, `ORDER BY Id`) does not use the new index: `sys.dm_db_index_usage_stats` shows no use of `IX_Invoices_Supplier_DueDate` after the run, only `PK_Invoices`. The difference between the two columns is noise.
 
 Execution plans (diagrams generated from the actual plans of `demo/queries.sql` query 2, not SSMS screenshots; open the `.sqlplan` files in SSMS for the originals: [without index](docs/plan-without-index.sqlplan), [with index](docs/plan-with-index.sqlplan)):
 
