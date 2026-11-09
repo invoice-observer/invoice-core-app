@@ -34,6 +34,7 @@ public class RmqRecoveryConfigurationTests
                 }));
             builder.ConfigureTestServices(services =>
             {
+                TestDatabaseSettings.UseInMemoryDatabase(services);
                 // Inspect the real factory registration without connecting or opening a database.
                 foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)
                              && d.ImplementationType == typeof(RmqStartupWorker)).ToArray())

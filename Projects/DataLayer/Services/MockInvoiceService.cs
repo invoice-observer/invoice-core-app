@@ -26,6 +26,18 @@ namespace DataLayer.Services
         public Task<List<Invoice>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(_invoices.ToList());
 
+        public Task<List<InvoiceSummaryDto>> GetPageAsync(int? afterId, int size, string? supplier,
+            DateTime? dueFrom, DateTime? dueTo, CancellationToken cancellationToken = default) =>
+            Task.FromResult(_invoices
+                .Where(i => (afterId is not { } after || i.Id > after)
+                            && (string.IsNullOrEmpty(supplier) || i.Supplier == supplier)
+                            && (dueFrom is not { } from || i.DueDate >= from)
+                            && (dueTo is not { } to || i.DueDate < to))
+                .OrderBy(i => i.Id).Take(size)
+                .Select(i => new InvoiceSummaryDto(i.Id, i.Supplier, i.DueDate, i.Description,
+                    i.InvoiceLines.Sum(l => l.Price * l.Quantity)))
+                .ToList());
+
         public Task<Invoice?> GetByIdAsync(int id, CancellationToken cancellationToken = default) =>
             Task.FromResult(_invoices.FirstOrDefault(i => i.Id == id));
 

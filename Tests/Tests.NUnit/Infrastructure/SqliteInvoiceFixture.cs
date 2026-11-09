@@ -26,6 +26,7 @@ public sealed class SqliteInvoiceFixture : IAsyncDisposable
         _connection.Open();
         Db = new InvoiceDbContext(new DbContextOptionsBuilder<InvoiceDbContext>()
             .UseSqlite(_connection).AddInterceptors(Commands).Options);
+        Db.Database.EnsureCreated();
         Readiness.SetupGet(r => r.State).Returns(() => State);
         Readiness.SetupGet(r => r.CanWriteInvoices).Returns(() => State == MessageReadinessState.Ready);
         _services = new ServiceCollection().AddSingleton(Db).AddSingleton(Publisher.Object)
