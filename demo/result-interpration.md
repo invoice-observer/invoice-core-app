@@ -16,3 +16,20 @@
 **Per-request floor:** `GET /api/invoices/42` (single invoice, 20 calls via `measure.ps1`) has a median of 10.9 ms, min 8.6 ms and max 15.1 ms. This includes the `EnsureCreated` checks.
 
 **Next step:** create an index on `Invoices (Supplier, DueDate)`, run `queries.sql` again, and compare the reads.
+
+## After: index on `Invoices (Supplier, DueDate)` (2026-11-09)
+
+Same 500,000-invoice database, `queries.sql` query 2 run twice (second run counts), `measure.ps1` with 20 calls after 1 warm-up (3 calls for `/api/invoices`).
+
+| Case | Without index | With index |
+|---|---|---|
+| Query 2 page reads | 6,787 (Invoices 6,042, InvoiceLines 745) | 786 (Invoices 161, InvoiceLines 625) |
+| Query 2 elapsed | 20 ms | 1-2 ms |
+| `GET /api/invoices/page?supplier=Supplier 042&size=50`, median (min / max) | 11.3 ms (9.8 / 15.7) | 12.5 ms (9.0 / 19.1) |
+| `GET /api/invoices`, median | 15.6 s, 176 MB | 15.4 s, 176 MB |
+
+**Findings**
+- The index replaces a scan of Invoices with a seek: 6,042 reads become 161, about 38 times fewer. Total reads fall by 88%.
+- The paged endpoint shows no measurable change. 11.3 ms against 12.5 ms is within run-to-run noise, because the per-request floor (about 11 ms) dominates. The gain is in reads and database load, which matters more at scale.
+- `GET /api/invoices` is unaffected by the index. It returns about 176 MB and takes 15 s. Paging is the fix for it, and `/api/invoices/page` answers in about 11 ms with 5.7 KB.
+- Single local machine, SQL Server in Docker, client on the same host. Compare reads, not milliseconds.

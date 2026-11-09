@@ -118,15 +118,16 @@ Baseline numbers without the index are in [demo/result-interpration.md](demo/res
 
 | Case                                  | Without index | With index |
 |---------------------------------------|---------------|------------|
-| Page reads, supplier and 30-day range | 6,787 [^1]    | _TBD_      |
-| `GET /api/invoices/page`, median      | _TBD_ ms      | _TBD_ ms   |
-| `GET /api/invoices/page`, min / max   | _TBD_ / _TBD_ ms | _TBD_ / _TBD_ ms |
-| `GET /api/invoices`, median           | 11.0 s [^2]   | _TBD_ ms   |
+| Page reads, supplier and 30-day range | 6,787 [^1]    | 786 [^3]   |
+| `GET /api/invoices/page`, median      | 11.3 ms       | 12.5 ms    |
+| `GET /api/invoices/page`, min / max   | 9.8 / 15.7 ms | 9.0 / 19.1 ms |
+| `GET /api/invoices`, median           | 15.6 s, 176 MB | 15.4 s, 176 MB |
 
 [^1]: Baseline from `demo/queries.sql` query 2 (with `Include`), not from the paged endpoint.
-[^2]: Query elapsed time in SSMS (1,499,961 rows), not an endpoint median.
+[^2]: Earlier baseline: query elapsed time in SSMS (1,499,961 rows), not an endpoint median. The endpoint rows were measured with 3 calls.
+[^3]: Invoices 161 reads (index seek) + InvoiceLines 625 reads.
 
-Execution plans:
+Execution plans (diagrams generated from the actual plans of `demo/queries.sql` query 2, not SSMS screenshots; open the `.sqlplan` files in SSMS for the originals: [without index](docs/plan-without-index.sqlplan), [with index](docs/plan-with-index.sqlplan)):
 
 ![Execution plan without index](docs/plan-without-index.png)
 
