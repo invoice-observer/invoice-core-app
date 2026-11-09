@@ -147,14 +147,38 @@ public class InvoiceWriteTests
     {
         using var cts = new CancellationTokenSource();
         var service = Service("DELETE", cts.Token, new MessagingUnavailableException());
-        List<Invoice> list = [invoice];
-        service.Setup(s => s.GetAllAsync(cts.Token)).ReturnsAsync(list);
+        List<InvoiceSummaryDto> list = [new(7, "Supplier", DateTime.Today, "d", 1)];
+        service.Setup(s => s.GetPageAsync(null, 51, null, null, null, cts.Token)).ReturnsAsync(list);
         var page = new IndexModel(service.Object);
         Assert.That(await page.OnPostDeleteAsync(7, cts.Token), Is.TypeOf<PageResult>());
         Assert.That(page.Invoices, Is.SameAs(list));
         Assert.That(page.ModelState[string.Empty]!.Errors.Single().ErrorMessage, Is.EqualTo(Detail));
         service.VerifyAll();
         service.VerifyNoOtherCalls();
+    }
+
+    [Test]
+    public async Task IndexPage_ShowsFiftyRows_AndNextAfterIdWhenMoreExist()
+    {
+        var service = new Mock<IInvoiceService>();
+        var rows = Enumerable.Range(1, 51).Select(i => new InvoiceSummaryDto(i, "S", DateTime.Today, "d", 1)).ToList();
+        service.Setup(s => s.GetPageAsync(10, 51, null, null, null, default)).ReturnsAsync(rows);
+        var page = new IndexModel(service.Object) { AfterId = 10 };
+        await page.OnGetAsync(default);
+        Assert.That(page.Invoices, Has.Count.EqualTo(50));
+        Assert.That(page.NextAfterId, Is.EqualTo(50));
+    }
+
+    [Test]
+    public async Task IndexPage_LastPage_HasNoNextAfterId()
+    {
+        var service = new Mock<IInvoiceService>();
+        service.Setup(s => s.GetPageAsync(null, 51, null, null, null, default))
+            .ReturnsAsync([new InvoiceSummaryDto(1, "S", DateTime.Today, "d", 1)]);
+        var page = new IndexModel(service.Object);
+        await page.OnGetAsync(default);
+        Assert.That(page.Invoices, Has.Count.EqualTo(1));
+        Assert.That(page.NextAfterId, Is.Null);
     }
 
     [TestCase(true)][TestCase(false)]
