@@ -120,31 +120,41 @@ Baseline numbers without the index are in [demo/result-interpretation.md](demo/r
 
 ### Results
 
-| Case                                  | Without index | With index |
-|---------------------------------------|---------------|------------|
-| Page reads, supplier and 30-day range | 6,787 [^1]    | 786 [^2]   |
-| `GET /api/invoices/page`, median [^3] | 93.6 ms       | 103.5 ms   |
-| `GET /api/invoices/page`, min / max   | 86.9 / 170.1 ms | 83.5 / 129.9 ms |
-| `GET /api/invoices/page?supplier=Supplier 042&size=50`, median [^4] | 11.3 ms       | 12.5 ms    |
-| `GET /api/invoices`, median [^5]      | 15.6 s, 176 MB | 15.4 s, 176 MB |
+Paging and projection, both measured without the index:
 
-[^1]: Baseline from `demo/queries.sql` query 2 (with `Include`), not from the paged endpoint. Query 2 window 2026-11-09 to 2026-12-09; the endpoint rows with a date window use 2026-11-10 to 2026-12-10.
-[^2]: Invoices 161 reads (index seek) + InvoiceLines 625 reads.
-[^3]: With the 30-day window (`dueFrom`/`dueTo`) of step 4. The endpoint's keyset query (`Id > afterId`, `ORDER BY Id`) does not use the new index: `sys.dm_db_index_usage_stats` shows no use of `IX_Invoices_Supplier_DueDate` after the run, only `PK_Invoices`. The difference between the two columns is noise.
-[^4]: Paged endpoint without a date window. Response 5.7 KB, against 176 MB for the unpaged `GET /api/invoices` in the next row.
-[^5]: Measured with 3 calls after one warm-up call, not 20.
+| Endpoint                                               | Median  | Response |
+|--------------------------------------------------------|---------|----------|
+| `GET /api/invoices`                                    | 15.6 s  | 176 MB   |
+| `GET /api/invoices/page?supplier=Supplier 042&size=50` | 11.3 ms | 5.7 KB   |
 
-Execution plans (diagrams generated from the actual plans of `demo/queries.sql` query 2 with the window 2026-11-09 to 2026-12-09, not SSMS screenshots; open the `.sqlplan` files in SSMS for the originals: [without index](docs/plan-without-index.sqlplan), [with index](docs/plan-with-index.sqlplan)):
+Index `(Supplier, DueDate)`, query 2 of `demo/queries.sql`:
 
-![Execution plan without index](docs/plan-without-index.png)
+|            | Without index | With index |
+|------------|---------------|------------|
+| Page reads | 6,787         | 786        |
+| Elapsed    | 20 ms         | 1-2 ms     |
 
-![Execution plan with index](docs/plan-with-index.png)
+Query 2 ran with the window 2026-11-09 to 2026-12-09; it starts at the current date, so counts shift by day.
+
+The paged endpoint does not use this index: its keyset query walks the primary key (`Id > afterId`, `ORDER BY Id`).
+With the 30-day window of step 4 it takes 93.6 ms without and 103.5 ms with the index; the difference is noise.
+Details, min/max values and the index usage check are in [demo/result-interpretation.md](demo/result-interpretation.md).
+
+Execution plans of query 2, drawn from the actual plans:
+
+Without index ([.sqlplan](docs/plan-without-index.sqlplan)):
+
+![Execution plan, query 2, without index](docs/plan-without-index.png)
+
+With index ([.sqlplan](docs/plan-with-index.sqlplan)):
+
+![Execution plan, query 2, with index](docs/plan-with-index.png)
 
 ### Limits
 
 All numbers come from one local machine, with SQL Server in Docker and the client on the same host. Each case was
-measured in a single run set of 20 calls after one warm-up call. Results will differ on other hardware, data sizes
-and cache states; compare page reads rather than milliseconds.
+measured in a single run set of 20 calls after one warm-up call (3 calls for `GET /api/invoices`). Results will
+differ on other hardware, data sizes and cache states; compare page reads rather than milliseconds.
 
 ## Configuration and Secrets
 
