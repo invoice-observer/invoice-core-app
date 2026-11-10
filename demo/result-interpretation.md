@@ -13,7 +13,7 @@
 - The demo query scans the whole Invoices table, 6,042 reads, to return 154 rows, because only the primary key is indexed.
 - A parallel plan keeps it at 18 ms, so compare page reads, not milliseconds.
 
-**Per-request floor:** `GET /api/invoices/42` (single invoice, 20 calls via `measure.ps1`) has a median of 10.9 ms, min 8.6 ms and max 15.1 ms. This includes the `EnsureCreated` checks.
+**Per-request floor:** `GET /api/invoices/42` (single invoice, 20 calls via `measure.ps1`) has a median of 10.9 ms, min 8.6 ms and max 15.1 ms. This includes the `EnsureCreated` checks: the value was measured before `EnsureCreated` moved from the service constructor to application startup.
 
 **Next step:** create an index on `Invoices (Supplier, DueDate)`, run `queries.sql` again, and compare the reads.
 
