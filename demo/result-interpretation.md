@@ -1,11 +1,11 @@
 # Demo step: baseline with 500,000 invoices
 
-**Setup:** `demo/seed.sql` filled InvoiceDb with about 500,000 invoices and 1,499,961 lines. `demo/queries.sql` was run twice, and the second run is used because the first includes compile time.
+**Setup:** `demo/seed.sql` filled InvoiceDb with about 500,000 invoices and 1,499,961 lines. `demo/queries.sql` was run twice, and the second run is used because the first includes compile time. Query 2 starts its 30-day window at the current date, so its counts shift by day.
 
 | Query | Rows | Page reads | Elapsed |
 |---|---|---|---|
 | GetAllAsync | 1,499,961 | 23,923 (Invoices 6,042, InvoiceLines 17,881) | 11.0 s |
-| Demo case: Supplier 042, next 30 days | 154 | 6,787 (Invoices 6,042, InvoiceLines 745) | 18 ms |
+| Demo case: Supplier 042, 2026-11-09 to 2026-12-09 | 154 | 6,787 (Invoices 6,042, InvoiceLines 745) | 18 ms |
 
 **Findings**
 - GetAllAsync scales linearly: 10 times the data gave about 10 times the reads and time.
@@ -19,7 +19,7 @@
 
 ## After: index on `Invoices (Supplier, DueDate)` (2026-11-09)
 
-Same 500,000-invoice database, `queries.sql` query 2 run twice (second run counts), `measure.ps1` with 20 calls after 1 warm-up (3 calls for `/api/invoices`).
+Same 500,000-invoice database, `queries.sql` query 2 run twice on 2026-11-09 (window 2026-11-09 to 2026-12-09, second run counts), `measure.ps1` with 20 calls after 1 warm-up (3 calls for `/api/invoices`).
 
 | Case | Without index | With index |
 |---|---|---|
